@@ -14,13 +14,10 @@ export async function GET(
       codigo_establecimiento: string;
       campania: string;
       estado_trazabilidad: string;
-      estado_operacional: string | null;
-      fecha_apertura: string;
-      fecha_cierre: string | null;
+      created_at: string;
     }>(
       `SELECT trazabilidad_id, codigo_grano, codigo_establecimiento,
-              campania, estado_trazabilidad, estado_operacional,
-              fecha_apertura, fecha_cierre
+              campania, estado_trazabilidad, created_at
        FROM traz_trazabilidades
        WHERE trazabilidad_id = $1`,
       [id]
@@ -37,11 +34,6 @@ export async function GET(
       resultado: string;
       responsable: string;
       datos: Record<string, unknown>;
-      humedad_pct: number | null;
-      total_caida_pct: number | null;
-      galpon: string | null;
-      url_drive: string | null;
-      hash_sha256: string | null;
     }>(
       `SELECT
         e.evento_id,
@@ -49,25 +41,25 @@ export async function GET(
         e.fecha_hora_evento AS fecha,
         e.resultado,
         e.responsable_nombre AS responsable,
-        e.datos_evento AS datos,
-        e.humedad_pct,
-        e.total_caida_pct,
-        e.galpon,
-        d.url_drive,
-        d.hash_sha256
+        e.datos_evento AS datos
       FROM traz_eventos e
-      LEFT JOIN documentos d ON d.doc_id = ANY(e.adjuntos_v2)
       WHERE e.trazabilidad_id = $1
       ORDER BY e.fecha_hora_evento`,
       [id]
     );
 
-    return NextResponse.json({ ...traz, eventos });
+    return NextResponse.json({
+      ...traz,
+      estado_operacional: null,
+      fecha_apertura: traz.created_at,
+      fecha_cierre: null,
+      eventos,
+    });
   } catch (error) {
-    console.error("Error fetching trazabilidad detail:", error);
+    const msg = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Error al obtener detalle" },
-      { status: 500 }
+      { error: "Error al obtener detalle", detail: msg },
+      { status: 200 }
     );
   }
 }

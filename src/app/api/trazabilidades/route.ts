@@ -11,9 +11,7 @@ export async function GET() {
       codigo_establecimiento: string;
       campania: string;
       estado_trazabilidad: string;
-      estado_operacional: string | null;
-      fecha_apertura: string;
-      fecha_cierre: string | null;
+      created_at: string;
       eventos: string;
     }>(
       `SELECT
@@ -22,9 +20,7 @@ export async function GET() {
         t.codigo_establecimiento,
         t.campania,
         t.estado_trazabilidad,
-        t.estado_operacional,
-        t.fecha_apertura,
-        t.fecha_cierre,
+        t.created_at,
         COALESCE(jsonb_agg(
           jsonb_build_object(
             'evento_id', e.evento_id,
@@ -39,7 +35,7 @@ export async function GET() {
       LEFT JOIN traz_eventos e ON e.trazabilidad_id = t.trazabilidad_id
       WHERE t.estado_trazabilidad = 'ABIERTA'
       GROUP BY t.trazabilidad_id
-      ORDER BY t.fecha_apertura DESC
+      ORDER BY t.created_at DESC
       LIMIT 50`
     );
 
@@ -53,7 +49,14 @@ export async function GET() {
       ).length;
 
       return {
-        ...r,
+        trazabilidad_id: r.trazabilidad_id,
+        codigo_grano: r.codigo_grano,
+        codigo_establecimiento: r.codigo_establecimiento,
+        campania: r.campania,
+        estado_trazabilidad: r.estado_trazabilidad,
+        estado_operacional: null,
+        fecha_apertura: r.created_at,
+        fecha_cierre: null,
         eventos: Array.isArray(eventos) ? eventos : [],
         progreso: Math.round((completados / EVENT_DEFINITIONS.length) * 100),
         total_eventos: EVENT_DEFINITIONS.length,
@@ -66,7 +69,7 @@ export async function GET() {
     const msg = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
       { error: "Error al obtener trazabilidades", detail: msg },
-      { status: 200 }  // 200 for debug
+      { status: 200 }
     );
   }
 }
