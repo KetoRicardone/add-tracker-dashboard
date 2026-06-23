@@ -35,6 +35,8 @@ export interface EventDefinition {
   descripcion: string;
   icon: string;
   gate: boolean;
+  /** RGANs que comparten el mismo grupo se dibujan como un bloque conectado (ej: RGAN-38 Parte 1 + Parte 2) */
+  grupo?: string;
 }
 
 export interface Stats {

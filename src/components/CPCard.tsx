@@ -8,6 +8,26 @@ import { DataBadge } from "./DataBadge";
 import { EventCompactRow } from "./EventCompactRow";
 import { Camera, CheckCircle2, ChevronDown, Circle, Clock, Eye, ShieldAlert, Truck, User } from "lucide-react";
 
+/** Agrupa eventos consecutivos que comparten el mismo `def.grupo` */
+function buildEventGroups(evts: TrazEvento[]) {
+  const groups: { grupo: string | null; evts: TrazEvento[] }[] = [];
+  let current: { grupo: string | null; evts: TrazEvento[] } | null = null;
+
+  for (const evt of evts) {
+    const def = EVENT_DEFINITIONS.find((d) => d.tipo_evento === evt.tipo_evento);
+    const g = def?.grupo || null;
+
+    if (current && current.grupo === g) {
+      current.evts.push(evt);
+    } else {
+      if (current) groups.push(current);
+      current = { grupo: g, evts: [evt] };
+    }
+  }
+  if (current) groups.push(current);
+  return groups;
+}
+
 export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs }: {
   cpe: string;
   evts: TrazEvento[];
@@ -17,8 +37,11 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs }: {
 }) {
   const [expanded, setExpanded] = useState(false);
   const completedTypes = new Set(evts.map((e) => e.tipo_evento));
-  const ocrData = (ocrEvt?.datos || {}) as Record<string, unknown>;
-  const ocrImageUrl = (ocrData.url as string) || (ocrData.drive_url as string) || null;
+  const ocrData = (ocrEvt?.datos || {}) as Record<string, string | number | null>;
+  const ocrImageUrl: string | null = (typeof ocrData.url === "string" && ocrData.url) || (typeof ocrData.drive_url === "string" && ocrData.drive_url) || null;
+
+  const nonOcrEvents = evts.filter((e) => e.tipo_evento !== "EV_OCR_CARTA_PORTE");
+  const eventGroups = buildEventGroups(nonOcrEvents);
 
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -64,16 +87,16 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs }: {
           {expanded && (
             <div className="px-4 pb-4 space-y-3">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-                {ocrData.fecha && <DataBadge label="Fecha" value={ocrData.fecha as string} />}
-                {ocrData.grano && <DataBadge label="Grano" value={ocrData.grano as string} />}
-                {ocrData.campania && <DataBadge label="Campaña" value={ocrData.campania as string} />}
+                {ocrData.fecha && <DataBadge label="Fecha" value={ocrData.fecha} />}
+                {ocrData.grano && <DataBadge label="Grano" value={ocrData.grano} />}
+                {ocrData.campania && <DataBadge label="Campaña" value={ocrData.campania} />}
                 {ocrData.peso_bruto && <DataBadge label="Peso Bruto" value={`${ocrData.peso_bruto} kg`} />}
                 {ocrData.peso_neto && <DataBadge label="Peso Neto" value={`${ocrData.peso_neto} kg`} />}
-                {ocrData.remitente && <DataBadge label="Remitente" value={ocrData.remitente as string} />}
-                {ocrData.transporte && <DataBadge label="Transporte" value={ocrData.transporte as string} />}
-                {ocrData.chofer && <DataBadge label="Chofer" value={ocrData.chofer as string} />}
-                {ocrData.domicilio && <DataBadge label="Domicilio" value={ocrData.domicilio as string} />}
-                {ocrData.n_planta && <DataBadge label="Nº Planta" value={ocrData.n_planta as string} />}
+                {ocrData.remitente && <DataBadge label="Remitente" value={ocrData.remitente} />}
+                {ocrData.transporte && <DataBadge label="Transporte" value={ocrData.transporte} />}
+                {ocrData.chofer && <DataBadge label="Chofer" value={ocrData.chofer} />}
+                {ocrData.domicilio && <DataBadge label="Domicilio" value={ocrData.domicilio} />}
+                {ocrData.n_planta && <DataBadge label="Nº Planta" value={ocrData.n_planta} />}
               </div>
 
               {ocrImageUrl && (
@@ -91,12 +114,42 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs }: {
         </div>
       )}
 
-      {/* Other Events */}
+      {/* Events — grouped when they share the same RGAN */}
       <div className="p-3 space-y-0.5">
-        {evts.filter((e) => e.tipo_evento !== "EV_OCR_CARTA_PORTE").map((evt) => {
-          const def = EVENT_DEFINITIONS.find((d) => d.tipo_evento === evt.tipo_evento);
-          const isOK = evt.resultado === "OK" || evt.resultado === "APROBADO";
-          return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} />;
+        {eventGroups.map((group, gi) => {
+          if (group.grupo) {
+            // Grupo RGAN: los eventos del mismo formulario se dibujan conectados
+            const groupDone = group.evts.length;
+            const totalInGroup = EVENT_DEFINITIONS.filter((d) => d.grupo === group.grupo).length;
+            const allDone = groupDone === totalInGroup;
+            return (
+              <div key={`${group.grupo}-${gi}`} className="rounded-lg border border-border/60 overflow-hidden">
+                {/* Group header */}
+                <div className={cn("flex items-center gap-2 px-3 py-2 text-xs font-medium", allDone ? "bg-success/10" : "bg-amber-50 dark:bg-amber-950/20")}>
+                  <span className={cn("font-mono", allDone ? "text-success" : "text-amber-600")}>{group.grupo}</span>
+                  <span className="text-muted-foreground">·</span>
+                  <span className="text-muted-foreground">{groupDone}/{totalInGroup} partes</span>
+                  {allDone && <CheckCircle2 className="h-3.5 w-3.5 text-success ml-auto" />}
+                  {!allDone && <span className="ml-auto text-[10px] text-amber-600">en progreso</span>}
+                </div>
+                {/* Group events */}
+                <div className="divide-y divide-border/30">
+                  {group.evts.map((evt) => {
+                    const def = EVENT_DEFINITIONS.find((d) => d.tipo_evento === evt.tipo_evento);
+                    const isOK = evt.resultado === "OK" || evt.resultado === "APROBADO";
+                    return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} />;
+                  })}
+                </div>
+              </div>
+            );
+          }
+
+          // Evento sin grupo — se renderiza individualmente
+          return group.evts.map((evt) => {
+            const def = EVENT_DEFINITIONS.find((d) => d.tipo_evento === evt.tipo_evento);
+            const isOK = evt.resultado === "OK" || evt.resultado === "APROBADO";
+            return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} />;
+          });
         })}
 
         {/* Pending */}
