@@ -3,9 +3,14 @@ import { TrazabilidadCard } from "@/components/TrazabilidadCard";
 import { StatsGrid } from "@/components/StatsGrid";
 import { RefreshCw, Filter } from "lucide-react";
 
+import { headers } from "next/headers";
+
 async function getTrazabilidades(): Promise<Trazabilidad[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const h = headers();
+    const host = h.get("host") || "localhost:3000";
+    const proto = h.get("x-forwarded-proto") || "http";
+    const baseUrl = `${proto}://${host}`;
     const res = await fetch(`${baseUrl}/api/trazabilidades`, {
       cache: "no-store",
     });

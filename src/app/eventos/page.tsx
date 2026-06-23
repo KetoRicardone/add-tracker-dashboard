@@ -2,11 +2,15 @@ import { TrazEvento } from "@/lib/types";
 import { EVENT_DEFINITIONS, GRAIN_NAMES } from "@/lib/events";
 import { formatDate } from "@/lib/utils";
 import { Calendar, Filter, ArrowRight } from "lucide-react";
+import { headers } from "next/headers";
 import Link from "next/link";
 
 async function getEventos(): Promise<(TrazEvento & { trazabilidad_id: string; codigo_grano: string; campania: string })[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const h = headers();
+    const host = h.get("host") || "localhost:3000";
+    const proto = h.get("x-forwarded-proto") || "http";
+    const baseUrl = `${proto}://${host}`;
     const res = await fetch(`${baseUrl}/api/eventos?limit=200`, {
       cache: "no-store",
     });

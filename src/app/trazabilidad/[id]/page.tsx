@@ -5,11 +5,15 @@ import { ProgressBar } from "@/components/ProgressBar";
 import { EVENT_DEFINITIONS } from "@/lib/events";
 import { formatDate } from "@/lib/utils";
 import { ArrowLeft, Calendar, MapPin, Hash } from "lucide-react";
+import { headers } from "next/headers";
 import Link from "next/link";
 
 async function getTrazabilidad(id: string): Promise<Trazabilidad | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const h = headers();
+    const host = h.get("host") || "localhost:3000";
+    const proto = h.get("x-forwarded-proto") || "http";
+    const baseUrl = `${proto}://${host}`;
     const res = await fetch(`${baseUrl}/api/trazabilidad/${id}`, {
       cache: "no-store",
     });
