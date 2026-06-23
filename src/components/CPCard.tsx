@@ -1,12 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { TrazEvento } from "@/lib/types";
+import { TrazEvento, Firma } from "@/lib/types";
 import { EVENT_DEFINITIONS } from "@/lib/events";
 import { formatDate, cn } from "@/lib/utils";
+import { emojiForIcon } from "@/lib/eventMeta";
 import { DataBadge } from "./DataBadge";
 import { EventCompactRow } from "./EventCompactRow";
-import { Camera, CheckCircle2, ChevronDown, Circle, Clock, Eye, ShieldAlert, Truck, User } from "lucide-react";
+import { Camera, CheckCircle2, ChevronDown, Circle, Clock, Eye, PenLine, ShieldAlert, Truck, User } from "lucide-react";
+
+/** Mapea un grupo RGAN al evento_tipo de firma que lo cierra */
+const GROUP_FIRMA_EVENTO: Record<string, string> = {
+  "RGAN-38": "RGAN38_COMPLETO",
+};
 
 /** Agrupa eventos consecutivos que comparten el mismo `def.grupo` */
 function buildEventGroups(evts: TrazEvento[]) {
@@ -28,12 +34,13 @@ function buildEventGroups(evts: TrazEvento[]) {
   return groups;
 }
 
-export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs }: {
+export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [] }: {
   cpe: string;
   evts: TrazEvento[];
   ocrEvt?: TrazEvento;
   doneCount: number;
   totalDefs: number;
+  firmas?: Firma[];
 }) {
   const [expanded, setExpanded] = useState(false);
   const completedTypes = new Set(evts.map((e) => e.tipo_evento));
@@ -122,15 +129,24 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs }: {
             const groupDone = group.evts.length;
             const totalInGroup = EVENT_DEFINITIONS.filter((d) => d.grupo === group.grupo).length;
             const allDone = groupDone === totalInGroup;
+            const groupDef = EVENT_DEFINITIONS.find((d) => d.grupo === group.grupo);
+            const firmaEvento = group.grupo ? GROUP_FIRMA_EVENTO[group.grupo] : undefined;
+            const firma = firmaEvento ? firmas.find((f) => f.evento_tipo === firmaEvento) : undefined;
             return (
               <div key={`${group.grupo}-${gi}`} className="rounded-lg border border-border/60 overflow-hidden">
                 {/* Group header */}
-                <div className={cn("flex items-center gap-2 px-3 py-2 text-xs font-medium", allDone ? "bg-success/10" : "bg-amber-50 dark:bg-amber-950/20")}>
-                  <span className={cn("font-mono", allDone ? "text-success" : "text-amber-600")}>{group.grupo}</span>
+                <div className={cn("flex items-center gap-2 px-3 py-2 text-xs font-medium", allDone ? "bg-success/10" : "bg-warning/10")}>
+                  <span className="text-base leading-none" aria-hidden>{emojiForIcon(groupDef?.icon)}</span>
+                  <span className={cn("font-mono font-semibold", allDone ? "text-success" : "text-warning")}>{group.grupo}</span>
                   <span className="text-muted-foreground">·</span>
                   <span className="text-muted-foreground">{groupDone}/{totalInGroup} partes</span>
+                  {firma && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 text-primary px-2 py-0.5 text-[10px] font-medium" title={`Firmado por ${firma.firmante}`}>
+                      <PenLine className="h-3 w-3" />Firmado · {firma.firmante}
+                    </span>
+                  )}
                   {allDone && <CheckCircle2 className="h-3.5 w-3.5 text-success ml-auto" />}
-                  {!allDone && <span className="ml-auto text-[10px] text-amber-600">en progreso</span>}
+                  {!allDone && <span className="ml-auto text-[10px] text-warning">en progreso</span>}
                 </div>
                 {/* Group events */}
                 <div className="divide-y divide-border/30">

@@ -8,9 +8,16 @@ export interface Trazabilidad {
   fecha_apertura: string;
   fecha_cierre: string | null;
   eventos: TrazEvento[];
+  firmas?: Firma[];
   progreso: number;
   total_eventos: number;
   completados: number;
+}
+
+export interface Firma {
+  firmante: string;
+  evento_tipo: string;
+  fecha: string;
 }
 
 export interface TrazEvento {

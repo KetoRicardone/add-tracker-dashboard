@@ -111,7 +111,7 @@ export const EVENT_DEFINITIONS: EventDefinition[] = [
     fase: 3,
     nombre: "Producto Final / Estiba",
     descripcion: "Control inicial y mensual: temp, humedad, roedores",
-    icon: " Warehouse",
+    icon: "Warehouse",
     gate: false,
   },
   {

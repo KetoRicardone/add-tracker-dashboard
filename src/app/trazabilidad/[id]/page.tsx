@@ -1,8 +1,9 @@
 import { Trazabilidad, TrazEvento } from "@/lib/types";
 import { GRAIN_NAMES } from "@/lib/events";
-import { formatDate } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
 import { CPCard } from "@/components/CPCard";
-import { ArrowLeft, Calendar, MapPin, Hash } from "lucide-react";
+import { FirmasCard } from "@/components/FirmasCard";
+import { ArrowLeft, Calendar, MapPin, FileText, Layers } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 
@@ -57,21 +58,36 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
     <div className="space-y-6 max-w-4xl mx-auto">
       <Link href="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" />Dashboard</Link>
 
-      <div className="rounded-xl border border-border bg-card p-5">
-        <div className="flex items-start gap-4">
-          <div className="text-4xl">🌾</div>
-          <div className="flex-1">
-            <h1 className="font-mono text-xl font-bold tracking-tight">{traz.trazabilidad_id}</h1>
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-primary/10 via-card to-card">
+          <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-primary/15 text-3xl">🌾</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="font-mono text-xl font-bold tracking-tight">{traz.trazabilidad_id}</h1>
+              <span className={cn(
+                "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide border",
+                traz.estado_trazabilidad === "ABIERTA"
+                  ? "bg-success/15 text-success border-success/30"
+                  : "bg-secondary text-muted-foreground border-border"
+              )}>
+                {traz.estado_trazabilidad}
+              </span>
+            </div>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <span className="text-sm font-medium">{GRAIN_NAMES[traz.codigo_grano] || traz.codigo_grano}</span>
               <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3" />{traz.codigo_establecimiento}</span>
               <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Calendar className="h-3 w-3" />{traz.campania}</span>
-              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Hash className="h-3 w-3" />{traz.estado_trazabilidad}</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">{cpGroups.size} CPs · {traz.eventos.length} eventos · Creada {formatDate(traz.fecha_apertura)}</p>
+            <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1"><Layers className="h-3.5 w-3.5" />{cpGroups.size} CPs</span>
+              <span className="inline-flex items-center gap-1"><FileText className="h-3.5 w-3.5" />{traz.eventos.length} eventos</span>
+              <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />{formatDate(traz.fecha_apertura)}</span>
+            </div>
           </div>
         </div>
       </div>
+
+      <FirmasCard firmas={traz.firmas || []} />
 
       {cpGroups.size === 0 ? (
         <div className="rounded-xl border border-dashed border-border/50 bg-card/30 p-10 text-center text-muted-foreground text-sm">Sin Cartas de Porte registradas</div>
@@ -79,7 +95,7 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
         Array.from(cpGroups.entries()).map(([cpe, evts]) => {
           const ocrEvt = evts.find((e) => e.tipo_evento === "EV_OCR_CARTA_PORTE");
           const doneCount = new Set(evts.map((e) => e.tipo_evento)).size;
-          return <CPCard key={cpe} cpe={cpe} evts={evts} ocrEvt={ocrEvt} doneCount={doneCount} totalDefs={totalDefs} />;
+          return <CPCard key={cpe} cpe={cpe} evts={evts} ocrEvt={ocrEvt} doneCount={doneCount} totalDefs={totalDefs} firmas={traz.firmas || []} />;
         })
       )}
     </div>

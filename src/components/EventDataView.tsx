@@ -1,0 +1,123 @@
+import { cn } from "@/lib/utils";
+import { humanizeKey, formatScalar, isBooleanMap } from "@/lib/eventMeta";
+import { Check, X, AlertTriangle } from "lucide-react";
+
+// Claves que se muestran en otro lado (observaciones) o son ruido visual.
+const SKIP_KEYS = new Set([
+  "observaciones",
+  "observacion",
+  "observaciones_finales",
+  "fecha",
+  "checklist_index",
+  "checklist_respuestas_meta",
+]);
+
+// Boolean maps donde `true` es una alerta (no un "OK").
+const FLAG_WHEN_TRUE = new Set(["respuestas_contaminacion"]);
+
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+  return !!v && typeof v === "object" && !Array.isArray(v);
+}
+
+function BooleanItem({ label, value, flagWhenTrue }: { label: string; value: boolean; flagWhenTrue: boolean }) {
+  const isAlert = flagWhenTrue ? value : !value;
+  return (
+    <div className="flex items-center gap-2 rounded-md bg-secondary/40 px-2.5 py-1.5">
+      {flagWhenTrue ? (
+        value ? <AlertTriangle className="h-3.5 w-3.5 text-warning flex-shrink-0" /> : <Check className="h-3.5 w-3.5 text-success flex-shrink-0" />
+      ) : value ? (
+        <Check className="h-3.5 w-3.5 text-success flex-shrink-0" />
+      ) : (
+        <X className="h-3.5 w-3.5 text-destructive flex-shrink-0" />
+      )}
+      <span className="text-xs flex-1 min-w-0 truncate">{label}</span>
+      <span className={cn("text-[10px] font-semibold", isAlert ? "text-warning" : "text-muted-foreground")}>
+        {value ? "Sí" : "No"}
+      </span>
+    </div>
+  );
+}
+
+function ChecklistBlock({ title, obj, flagWhenTrue }: { title: string; obj: Record<string, boolean>; flagWhenTrue: boolean }) {
+  const entries = Object.entries(obj);
+  const okCount = entries.filter(([, v]) => (flagWhenTrue ? !v : v)).length;
+  return (
+    <div className="rounded-lg border border-border/60 bg-card/40 p-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold text-foreground/80">{title}</span>
+        <span className="text-[10px] text-muted-foreground">{okCount}/{entries.length} OK</span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+        {entries.map(([k, v]) => (
+          <BooleanItem key={k} label={humanizeKey(k)} value={v} flagWhenTrue={flagWhenTrue} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ScalarGrid({ items }: { items: [string, unknown][] }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      {items.map(([k, v]) => (
+        <div key={k} className="rounded-md bg-secondary/40 px-2.5 py-1.5">
+          <p className="text-[10px] text-muted-foreground truncate">{humanizeKey(k)}</p>
+          <p className="text-sm font-medium truncate">{formatScalar(k, v)}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Clasifica las claves de un objeto en escalares, checklists y sub-objetos. */
+function partition(obj: Record<string, unknown>) {
+  const scalars: [string, unknown][] = [];
+  const checklists: [string, Record<string, boolean>][] = [];
+  const nested: [string, Record<string, unknown>][] = [];
+
+  for (const [k, v] of Object.entries(obj)) {
+    if (SKIP_KEYS.has(k)) continue;
+    if (isBooleanMap(v)) checklists.push([k, v]);
+    else if (typeof v === "boolean") scalars.push([k, v ? "Sí" : "No"]);
+    else if (Array.isArray(v)) {
+      if (v.length > 0) scalars.push([k, v.join(", ")]);
+    } else if (isPlainObject(v)) nested.push([k, v]);
+    else if (v !== null && v !== undefined && v !== "") scalars.push([k, v]);
+  }
+  return { scalars, checklists, nested };
+}
+
+export function EventDataView({ datos }: { datos: Record<string, unknown> }) {
+  const { scalars, checklists, nested } = partition(datos);
+
+  const hasContent = scalars.length > 0 || checklists.length > 0 || nested.length > 0;
+  if (!hasContent) {
+    return <p className="text-xs text-muted-foreground italic">Sin datos adicionales registrados.</p>;
+  }
+
+  return (
+    <div className="space-y-3">
+      <ScalarGrid items={scalars} />
+
+      {checklists.map(([k, v]) => (
+        <ChecklistBlock key={k} title={humanizeKey(k)} obj={v} flagWhenTrue={FLAG_WHEN_TRUE.has(k)} />
+      ))}
+
+      {nested.map(([k, v]) => {
+        const sub = partition(v);
+        return (
+          <div key={k} className="rounded-lg border border-border/50 p-3">
+            <p className="text-xs font-semibold text-primary mb-2 uppercase tracking-wide">{humanizeKey(k)}</p>
+            <div className="space-y-2">
+              <ScalarGrid items={sub.scalars} />
+              {sub.checklists.map(([sk, sv]) => (
+                <ChecklistBlock key={sk} title={humanizeKey(sk)} obj={sv} flagWhenTrue={FLAG_WHEN_TRUE.has(sk)} />
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

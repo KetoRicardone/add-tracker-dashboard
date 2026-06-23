@@ -52,12 +52,32 @@ export async function GET(
       [id]
     );
 
+    // Firmas documentales (quién firmó qué). trazabilidad_id se castea a texto
+    // para tolerar el tipo de la columna (código tipo 1SMx-...-yyyy).
+    const firmas = await query<{
+      firmante: string;
+      evento_tipo: string;
+      fecha: string;
+    }>(
+      `SELECT
+        COALESCE(metadata->>'usuario', u.nombre, 'Usuario') AS firmante,
+        evento_tipo,
+        fecha
+      FROM auditoria_firmas af
+      LEFT JOIN usuarios u ON u.usuario_id = af.usuario_id
+      WHERE af.trazabilidad_id::text = $1
+        AND af.accion::text = 'FIRMA_EVENTO'
+      ORDER BY fecha`,
+      [id]
+    );
+
     return NextResponse.json({
       ...traz,
       estado_operacional: null,
       fecha_apertura: traz.created_at,
       fecha_cierre: null,
       eventos,
+      firmas,
     }, { headers: { "Cache-Control": "no-store, max-age=0" } });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
