@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </header>
           <main className="flex-1 container mx-auto px-4 py-6">{children}</main>
+          <AutoRefresh intervalSeconds={30} />
           <footer className="border-t border-border py-4 text-center text-xs text-muted-foreground">
             ADD Tracker — Anta del Dorado S.A. — {new Date().getFullYear()}
           </footer>
