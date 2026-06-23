@@ -5,6 +5,9 @@ import { RefreshCw, Filter } from "lucide-react";
 
 import { headers } from "next/headers";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 async function getTrazabilidades(): Promise<Trazabilidad[]> {
   try {
     const h = headers();
@@ -70,7 +73,7 @@ export default async function DashboardPage() {
         <h3 className="text-sm font-semibold mb-3">Pipeline de eventos — Etapa 1</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
           {[
-            { fase: "F1 · Recepción", items: "OCR · RGAN-38 · RGAN-39 · RGAN-55", color: "bg-emerald-500" },
+            { fase: "F1 · Recepción", items: "OCR · RGAN-38 (P1+P2) · RGAN-39 · RGAN-55", color: "bg-emerald-500" },
             { fase: "F2 · Procesamiento", items: "RGAN-41 · RGAN-53 · RGAN-61 · RGAN-60", color: "bg-blue-500" },
             { fase: "F3 · Embolsado + PCC", items: "RGAN-57 · RGAN-42 · RGAN-81 · RGAN-43 · RGAN-104", color: "bg-amber-500" },
             { fase: "F4 · Despacho", items: "RGAN-56 · RGAN-74 · RGAN-21", color: "bg-violet-500" },

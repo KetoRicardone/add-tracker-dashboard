@@ -6,6 +6,9 @@ import { ArrowLeft, Calendar, MapPin, Hash } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 async function getTrazabilidad(id: string): Promise<Trazabilidad | null> {
   try {
     const h = headers();
