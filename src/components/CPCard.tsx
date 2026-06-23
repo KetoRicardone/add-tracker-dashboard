@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { TrazEvento, Firma } from "@/lib/types";
-import { EVENT_DEFINITIONS } from "@/lib/events";
+import { EVENT_DEFINITIONS, defForEvent } from "@/lib/events";
 import { formatDate, cn } from "@/lib/utils";
 import { emojiForIcon } from "@/lib/eventMeta";
 import { DataBadge } from "./DataBadge";
@@ -20,7 +20,7 @@ function buildEventGroups(evts: TrazEvento[]) {
   let current: { grupo: string | null; evts: TrazEvento[] } | null = null;
 
   for (const evt of evts) {
-    const def = EVENT_DEFINITIONS.find((d) => d.tipo_evento === evt.tipo_evento);
+    const def = defForEvent(evt);
     const g = def?.grupo || null;
 
     if (current && current.grupo === g) {
@@ -57,7 +57,7 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [] }:
         <div className="flex items-center gap-3">
           <Truck className="h-5 w-5 text-primary" />
           <div>
-            <h2 className="font-mono font-semibold text-sm">CP {cpe}</h2>
+            <h2 className="font-mono font-semibold text-sm">{cpe.startsWith("__") ? "Sin CP asignada" : `CP ${cpe}`}</h2>
             <p className="text-xs text-muted-foreground">{doneCount} de {totalDefs} eventos · {Math.round((doneCount / totalDefs) * 100)}%</p>
           </div>
         </div>
@@ -151,7 +151,7 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [] }:
                 {/* Group events */}
                 <div className="divide-y divide-border/30">
                   {group.evts.map((evt) => {
-                    const def = EVENT_DEFINITIONS.find((d) => d.tipo_evento === evt.tipo_evento);
+                    const def = defForEvent(evt);
                     const isOK = evt.resultado === "OK" || evt.resultado === "APROBADO";
                     return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} />;
                   })}
@@ -162,7 +162,7 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [] }:
 
           // Evento sin grupo — se renderiza individualmente
           return group.evts.map((evt) => {
-            const def = EVENT_DEFINITIONS.find((d) => d.tipo_evento === evt.tipo_evento);
+            const def = defForEvent(evt);
             const isOK = evt.resultado === "OK" || evt.resultado === "APROBADO";
             return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} />;
           });

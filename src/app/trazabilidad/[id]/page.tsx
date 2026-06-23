@@ -27,15 +27,27 @@ function getCPE(evt: TrazEvento): string | null {
   return (d.cpe as string) || (d.cp_seleccionada as string) || null;
 }
 
+const SIN_CP = "__sin_cp__";
+
+/**
+ * Agrupa eventos por Carta de Porte. Los eventos sin CPE (ej. Calidad MP que
+ * no propagó el campo) NO se descartan: si hay una sola CP, se adjuntan a ella;
+ * si hay varias, van a un grupo "Sin CP asignada" para que siempre se vean.
+ */
 function groupByCPE(eventos: TrazEvento[]): Map<string, TrazEvento[]> {
+  const cpes = Array.from(
+    new Set(eventos.map(getCPE).filter((c): c is string => !!c))
+  );
+  const soleCPE = cpes.length === 1 ? cpes[0] : null;
+
   const groups = new Map<string, TrazEvento[]>();
+  cpes.forEach((c) => groups.set(c, [])); // preserva el orden de aparición
+
   eventos.forEach((evt) => {
-    const cpe = getCPE(evt);
-    if (cpe) {
-      const arr = groups.get(cpe) || [];
-      arr.push(evt);
-      groups.set(cpe, arr);
-    }
+    const key = getCPE(evt) || soleCPE || SIN_CP;
+    const arr = groups.get(key) || [];
+    arr.push(evt);
+    groups.set(key, arr);
   });
   return groups;
 }

@@ -1,4 +1,4 @@
-import { EventDefinition } from "./types";
+import { EventDefinition, TrazEvento } from "./types";
 
 export const EVENT_DEFINITIONS: EventDefinition[] = [
   // FASE 1 — Recepción
@@ -152,6 +152,23 @@ export const EVENT_DEFINITIONS: EventDefinition[] = [
     gate: false,
   },
 ];
+
+// Algunos tipo_evento se reutilizan entre RGANs. Ej.: EV_CONTROL_CALIDAD_MP lo
+// emiten tanto RGAN-38 Parte 2 como RGAN-39 (Calidad de Ingreso). Se desambigua
+// por datos_evento.codigo_rgan.
+const RGAN_OVERRIDES: Record<string, Partial<EventDefinition>> = {
+  "RGAN-39": { rgan: "RGAN-39", nombre: "Calidad de Ingreso", icon: "FlaskConical", grupo: undefined },
+};
+
+/** Definición de presentación para un evento, considerando codigo_rgan. */
+export function defForEvent(evt: Pick<TrazEvento, "tipo_evento" | "datos">): EventDefinition | undefined {
+  const base = EVENT_DEFINITIONS.find((d) => d.tipo_evento === evt.tipo_evento);
+  const codigoRgan = (evt.datos?.codigo_rgan as string | undefined) || undefined;
+  if (base && codigoRgan && codigoRgan !== base.rgan && RGAN_OVERRIDES[codigoRgan]) {
+    return { ...base, ...RGAN_OVERRIDES[codigoRgan] };
+  }
+  return base;
+}
 
 export const GRAIN_NAMES: Record<string, string> = {
   SES: "Sésamo",

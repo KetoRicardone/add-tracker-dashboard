@@ -3,32 +3,30 @@
 import { Trazabilidad } from "@/lib/types";
 import { ProgressBar } from "./ProgressBar";
 import { GrainIcon, GrainBadge } from "./GrainIcon";
-import { EVENT_DEFINITIONS } from "@/lib/events";
+import { ResultBadge } from "./ResultBadge";
+import { defForEvent } from "@/lib/events";
+import { emojiForIcon } from "@/lib/eventMeta";
 import { formatDate } from "@/lib/utils";
-import { ArrowRight, Clock, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Clock, FileText } from "lucide-react";
 
 export function TrazabilidadCard({ traz }: { traz: Trazabilidad }) {
   const tiposRegistrados = new Set(traz.eventos.map((e) => e.tipo_evento));
   const ultimoEvento = traz.eventos[traz.eventos.length - 1];
-  const ultimaDef = ultimoEvento
-    ? EVENT_DEFINITIONS.find((d) => d.tipo_evento === ultimoEvento.tipo_evento)
-    : null;
+  const ultimaDef = ultimoEvento ? defForEvent(ultimoEvento) : null;
 
   return (
     <a
       href={`/trazabilidad/${traz.trazabilidad_id}`}
-      className="group block rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200"
+      className="group block overflow-hidden rounded-xl border border-border bg-card transition-all duration-200 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5"
     >
-      <div className="p-5 space-y-4">
+      <div className="space-y-4 p-5">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <GrainIcon codigo={traz.codigo_grano} size="lg" />
             <div>
-              <h3 className="font-mono font-semibold text-sm tracking-tight">
-                {traz.trazabilidad_id}
-              </h3>
-              <div className="flex items-center gap-2 mt-0.5">
+              <h3 className="font-mono text-sm font-semibold tracking-tight">{traz.trazabilidad_id}</h3>
+              <div className="mt-0.5 flex items-center gap-2">
                 <GrainBadge codigo={traz.codigo_grano} />
                 <span className="text-xs text-muted-foreground">
                   {traz.codigo_establecimiento} · {traz.campania}
@@ -36,10 +34,10 @@ export function TrazabilidadCard({ traz }: { traz: Trazabilidad }) {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 text-muted-foreground group-hover:text-primary transition-colors">
+          <span className="flex items-center gap-1.5 text-muted-foreground transition-colors group-hover:text-primary">
             <span className="text-xs">Ver</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </div>
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </span>
         </div>
 
         {/* Progress */}
@@ -50,16 +48,17 @@ export function TrazabilidadCard({ traz }: { traz: Trazabilidad }) {
         />
 
         {/* Last event */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground border-t border-border pt-3">
+        <div className="flex items-center gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
           {ultimoEvento ? (
             <>
-              <CheckCircle2 className="h-3 w-3 text-success" />
-              <span>
-                Último: <span className="text-foreground font-medium">{ultimaDef?.nombre || ultimoEvento.tipo_evento}</span>
+              <span className="text-sm leading-none" aria-hidden>{emojiForIcon(ultimaDef?.icon)}</span>
+              <span className="min-w-0 flex-1 truncate">
+                <span className="text-foreground font-medium">{ultimaDef?.nombre || ultimoEvento.tipo_evento}</span>
               </span>
-              <span>·</span>
-              <Clock className="h-3 w-3" />
-              <span>{formatDate(ultimoEvento.fecha)}</span>
+              <ResultBadge resultado={ultimoEvento.resultado} />
+              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                <FileText className="h-3 w-3" />{traz.eventos.length}
+              </span>
             </>
           ) : (
             <>

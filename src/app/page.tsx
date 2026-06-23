@@ -31,18 +31,21 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Trazabilidad operacional — Etapa 1
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">
-            {trazabilidades.length} activas
-          </span>
-          <div className="h-2 w-2 rounded-full bg-success animate-pulse-green" />
+      <div className="rounded-xl border border-border bg-gradient-to-br from-primary/10 via-card to-card p-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-2xl">🌾</span>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                Trazabilidad operacional de granos — Anta del Dorado S.A.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-3 py-1">
+            <span className="h-2 w-2 rounded-full bg-success animate-pulse-green" />
+            <span className="text-xs font-medium text-success">{trazabilidades.length} activas</span>
+          </div>
         </div>
       </div>
 

@@ -70,10 +70,36 @@ function ScalarGrid({ items }: { items: [string, unknown][] }) {
   );
 }
 
-/** Clasifica las claves de un objeto en escalares, checklists y sub-objetos. */
+/** Lista de objetos homogéneos (ej. precintos: [{nro, peso, foto}]) */
+function ListBlock({ title, items }: { title: string; items: Record<string, unknown>[] }) {
+  return (
+    <div className="rounded-lg border border-border/60 bg-card/40 p-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold text-foreground/80">{title}</span>
+        <span className="text-[10px] text-muted-foreground">{items.length}</span>
+      </div>
+      <div className="space-y-1">
+        {items.map((it, i) => (
+          <div key={i} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 rounded-md bg-secondary/40 px-2.5 py-1.5 text-xs">
+            <span className="font-mono text-muted-foreground">#{i + 1}</span>
+            {Object.entries(it).map(([k, v]) => (
+              <span key={k}>
+                <span className="text-muted-foreground">{humanizeKey(k)}:</span>{" "}
+                <span className="font-medium">{typeof v === "boolean" ? (v ? "Sí" : "No") : formatScalar(k, v)}</span>
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Clasifica las claves de un objeto en escalares, checklists, listas y sub-objetos. */
 function partition(obj: Record<string, unknown>) {
   const scalars: [string, unknown][] = [];
   const checklists: [string, Record<string, boolean>][] = [];
+  const lists: [string, Record<string, unknown>[]][] = [];
   const nested: [string, Record<string, unknown>][] = [];
 
   for (const [k, v] of Object.entries(obj)) {
@@ -81,17 +107,20 @@ function partition(obj: Record<string, unknown>) {
     if (isBooleanMap(v)) checklists.push([k, v]);
     else if (typeof v === "boolean") scalars.push([k, v ? "Sí" : "No"]);
     else if (Array.isArray(v)) {
-      if (v.length > 0) scalars.push([k, v.join(", ")]);
+      if (v.length === 0) continue;
+      if (v.every(isPlainObject)) lists.push([k, v as Record<string, unknown>[]]);
+      else scalars.push([k, v.join(", ")]);
     } else if (isPlainObject(v)) nested.push([k, v]);
     else if (v !== null && v !== undefined && v !== "") scalars.push([k, v]);
   }
-  return { scalars, checklists, nested };
+  return { scalars, checklists, lists, nested };
 }
 
 export function EventDataView({ datos }: { datos: Record<string, unknown> }) {
-  const { scalars, checklists, nested } = partition(datos);
+  const { scalars, checklists, lists, nested } = partition(datos);
 
-  const hasContent = scalars.length > 0 || checklists.length > 0 || nested.length > 0;
+  const hasContent =
+    scalars.length > 0 || checklists.length > 0 || lists.length > 0 || nested.length > 0;
   if (!hasContent) {
     return <p className="text-xs text-muted-foreground italic">Sin datos adicionales registrados.</p>;
   }
@@ -104,6 +133,10 @@ export function EventDataView({ datos }: { datos: Record<string, unknown> }) {
         <ChecklistBlock key={k} title={humanizeKey(k)} obj={v} flagWhenTrue={FLAG_WHEN_TRUE.has(k)} />
       ))}
 
+      {lists.map(([k, v]) => (
+        <ListBlock key={k} title={humanizeKey(k)} items={v} />
+      ))}
+
       {nested.map(([k, v]) => {
         const sub = partition(v);
         return (
@@ -113,6 +146,9 @@ export function EventDataView({ datos }: { datos: Record<string, unknown> }) {
               <ScalarGrid items={sub.scalars} />
               {sub.checklists.map(([sk, sv]) => (
                 <ChecklistBlock key={sk} title={humanizeKey(sk)} obj={sv} flagWhenTrue={FLAG_WHEN_TRUE.has(sk)} />
+              ))}
+              {sub.lists.map(([sk, sv]) => (
+                <ListBlock key={sk} title={humanizeKey(sk)} items={sv} />
               ))}
             </div>
           </div>
