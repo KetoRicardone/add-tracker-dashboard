@@ -66,7 +66,7 @@ export async function GET() {
     const msg = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
       { error: "Error al obtener trazabilidades", detail: msg },
-      { status: 500 }
+      { status: 200 }  // 200 for debug
     );
   }
 }
