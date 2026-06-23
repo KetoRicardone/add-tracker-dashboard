@@ -3,6 +3,10 @@ import { query } from "@/lib/db";
 import { Trazabilidad } from "@/lib/types";
 import { EVENT_DEFINITIONS } from "@/lib/events";
 
+// Evita que Next cachee la respuesta en build: siempre consulta la BD en vivo.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const rows = await query<{
