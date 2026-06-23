@@ -63,9 +63,9 @@ export async function GET() {
 
     return NextResponse.json({ trazabilidades, total: trazabilidades.length });
   } catch (error) {
-    console.error("Error fetching trazabilidades:", error);
+    const msg = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Error al obtener trazabilidades" },
+      { error: "Error al obtener trazabilidades", detail: msg },
       { status: 500 }
     );
   }

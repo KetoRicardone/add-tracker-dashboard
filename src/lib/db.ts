@@ -1,7 +1,13 @@
 import { Pool } from "pg";
 
+const rawUrl = process.env.DATABASE_URL || "";
+// Supabase pooler on port 6543 requires pgbouncer mode
+const dbUrl = rawUrl.includes("pooler.supabase.com")
+  ? rawUrl + (rawUrl.includes("?") ? "&" : "?") + "pgbouncer=true"
+  : rawUrl;
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: dbUrl,
   max: 5,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 15000,
