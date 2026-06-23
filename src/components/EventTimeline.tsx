@@ -154,7 +154,7 @@ export function EventTimeline({ eventos }: EventTimelineProps) {
                               <span
                                 className={cn(
                                   "inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium",
-                                  def.evento!.resultado === "OK"
+                                  (def.evento!.resultado === "OK" || def.evento!.resultado === "APROBADO")
                                     ? "bg-success/20 text-success"
                                     : "bg-destructive/20 text-destructive"
                                 )}
