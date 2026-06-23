@@ -64,7 +64,10 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ trazabilidades, total: trazabilidades.length });
+    return NextResponse.json(
+      { trazabilidades, total: trazabilidades.length },
+      { headers: { "Cache-Control": "no-store, max-age=0" } }
+    );
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
