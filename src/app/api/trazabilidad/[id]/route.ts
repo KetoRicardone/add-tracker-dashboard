@@ -54,7 +54,7 @@ export async function GET(
       fecha_apertura: traz.created_at,
       fecha_cierre: null,
       eventos,
-    });
+    }, { headers: { "Cache-Control": "no-store, max-age=0" } });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     return NextResponse.json(

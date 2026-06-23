@@ -30,7 +30,10 @@ export async function GET() {
       LIMIT 200`
     );
 
-    return NextResponse.json({ eventos, total: eventos.length });
+    return NextResponse.json(
+      { eventos, total: eventos.length },
+      { headers: { "Cache-Control": "no-store, max-age=0" } }
+    );
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
