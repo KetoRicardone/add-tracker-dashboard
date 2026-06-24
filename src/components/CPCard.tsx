@@ -43,6 +43,7 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [] }:
   firmas?: Firma[];
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const completedTypes = new Set(evts.map((e) => e.tipo_evento));
   const ocrData = (ocrEvt?.datos || {}) as Record<string, string | number | null>;
   const ocrImageUrl: string | null = (typeof ocrData.url === "string" && ocrData.url) || (typeof ocrData.drive_url === "string" && ocrData.drive_url) || null;
@@ -52,8 +53,11 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [] }:
 
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
-      {/* CP Header */}
-      <div className="p-4 flex items-center justify-between bg-secondary/20 border-b border-border">
+      {/* CP Header (click para contraer/expandir) */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className={cn("w-full p-4 flex items-center justify-between bg-secondary/20 text-left hover:bg-secondary/30 transition-colors", !collapsed && "border-b border-border")}
+      >
         <div className="flex items-center gap-3">
           <Truck className="h-5 w-5 text-primary" />
           <div>
@@ -61,17 +65,22 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [] }:
             <p className="text-xs text-muted-foreground">{doneCount} de {totalDefs} eventos · {Math.round((doneCount / totalDefs) * 100)}%</p>
           </div>
         </div>
-        <div className="flex gap-0.5 h-2">
-          {[1, 2, 3, 4].map((fase) => {
-            const faseDefs = EVENT_DEFINITIONS.filter((d) => d.fase === fase);
-            const faseDone = faseDefs.filter((d) => completedTypes.has(d.tipo_evento)).length;
-            const pct = Math.round((faseDone / faseDefs.length) * 100);
-            return <div key={fase} className="w-5 h-full bg-secondary rounded-full overflow-hidden" title={`F${fase}: ${faseDone}/${faseDefs.length}`}>
-              <div className={cn("h-full rounded-full", pct === 100 ? "bg-success" : pct > 0 ? "bg-primary" : "")} style={{ width: `${pct}%` }} />
-            </div>;
-          })}
+        <div className="flex items-center gap-3">
+          <div className="flex gap-0.5 h-2">
+            {[1, 2, 3, 4].map((fase) => {
+              const faseDefs = EVENT_DEFINITIONS.filter((d) => d.fase === fase);
+              const faseDone = faseDefs.filter((d) => completedTypes.has(d.tipo_evento)).length;
+              const pct = Math.round((faseDone / faseDefs.length) * 100);
+              return <div key={fase} className="w-5 h-full bg-secondary rounded-full overflow-hidden" title={`F${fase}: ${faseDone}/${faseDefs.length}`}>
+                <div className={cn("h-full rounded-full", pct === 100 ? "bg-success" : pct > 0 ? "bg-primary" : "")} style={{ width: `${pct}%` }} />
+              </div>;
+            })}
+          </div>
+          <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", collapsed && "-rotate-90")} />
         </div>
-      </div>
+      </button>
+
+      {!collapsed && (<>
 
       {/* OCR Block */}
       {ocrEvt && (
@@ -178,6 +187,8 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [] }:
           </div>
         ))}
       </div>
+
+      </>)}
     </div>
   );
 }

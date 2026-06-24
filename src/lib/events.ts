@@ -163,8 +163,23 @@ const RGAN_OVERRIDES: Record<string, Partial<EventDefinition>> = {
 /** Definición de presentación para un evento, considerando codigo_rgan. */
 export function defForEvent(evt: Pick<TrazEvento, "tipo_evento" | "datos">): EventDefinition | undefined {
   const base = EVENT_DEFINITIONS.find((d) => d.tipo_evento === evt.tipo_evento);
-  const codigoRgan = (evt.datos?.codigo_rgan as string | undefined) || undefined;
-  if (base && codigoRgan && codigoRgan !== base.rgan && RGAN_OVERRIDES[codigoRgan]) {
+  if (!base) return base;
+  const d = evt.datos || {};
+  const codigoRgan = (d.codigo_rgan as string | undefined) || undefined;
+
+  // RGAN-39 (Calidad de Ingreso) reusa el tipo EV_CONTROL_CALIDAD_MP de RGAN-38 P2.
+  // Se distingue por codigo_rgan o por la firma de datos del flujo de ingreso
+  // (tolera filas viejas mal etiquetadas como RGAN-38).
+  if (evt.tipo_evento === "EV_CONTROL_CALIDAD_MP") {
+    const esIngreso =
+      codigoRgan === "RGAN-39" ||
+      d.kgs_netos != null ||
+      d.caida_total_kg != null ||
+      d.calidad_grano != null;
+    if (esIngreso) return { ...base, ...RGAN_OVERRIDES["RGAN-39"] };
+  }
+
+  if (codigoRgan && codigoRgan !== base.rgan && RGAN_OVERRIDES[codigoRgan]) {
     return { ...base, ...RGAN_OVERRIDES[codigoRgan] };
   }
   return base;
