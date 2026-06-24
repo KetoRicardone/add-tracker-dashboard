@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { LoginControl } from "@/components/LoginControl";
-import { getSesion } from "@/lib/auth";
+import { getSesion, esAdmin } from "@/lib/auth";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +32,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <a href="/eventos" className="rounded-md px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
                   Eventos
                 </a>
+                {esAdmin(sesion) && (
+                  <a href="/admin" className="rounded-md px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+                    Admin
+                  </a>
+                )}
                 <div className="ml-2 pl-2 border-l border-border">
                   <LoginControl nombre={sesion?.nombre ?? null} />
                 </div>

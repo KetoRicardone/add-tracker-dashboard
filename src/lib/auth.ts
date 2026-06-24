@@ -55,5 +55,13 @@ export function getSesion(): Sesion | null {
   return verifyToken(cookies().get(COOKIE)?.value);
 }
 
+// Roles con acceso al panel de administración (gestión de usuarios y permisos).
+export const ADMIN_ROLES = ["ADMIN", "SISTEMAS"];
+
+/** True si la sesión corresponde a un rol administrador. */
+export function esAdmin(s: Sesion | null): boolean {
+  return !!s && ADMIN_ROLES.includes(s.rol || "");
+}
+
 export const SESSION_COOKIE = COOKIE;
 export const SESSION_TTL_MS = TTL_MS;
