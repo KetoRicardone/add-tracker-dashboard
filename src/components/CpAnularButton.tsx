@@ -9,10 +9,12 @@ export function CpAnularButton({
   trazabilidadId,
   cpe,
   nombre,
+  sinCp = false,
 }: {
   trazabilidadId: string;
   cpe: string;
   nombre: string;
+  sinCp?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -48,16 +50,16 @@ export function CpAnularButton({
           setOpen(true);
         }}
         className="inline-flex items-center gap-1 rounded-md border border-destructive/30 px-2 py-1 text-[11px] text-destructive hover:bg-destructive/10 transition-colors"
-        title="Anular todos los eventos de esta CP"
+        title={sinCp ? "Anular los eventos sin CP" : "Anular todos los eventos de esta CP"}
       >
-        <Ban className="h-3 w-3" />Anular CP
+        <Ban className="h-3 w-3" />{sinCp ? "Anular" : "Anular CP"}
       </button>
 
-      <Modal open={open} onClose={() => setOpen(false)} title={`Anular CP ${cpe}`}>
+      <Modal open={open} onClose={() => setOpen(false)} title={sinCp ? "Anular eventos sin CP" : `Anular CP ${cpe}`}>
         <div className="space-y-3">
           <p className="text-xs text-muted-foreground">
-            Anula <b>todos los eventos vigentes</b> de esta CP (quedan marcados ANULADO con
-            traza). No se borran físicamente. Actor: <b>{nombre}</b>.
+            Anula <b>todos los eventos vigentes {sinCp ? "sin CP asignada" : "de esta CP"}</b> (quedan
+            marcados ANULADO con traza). No se borran físicamente. Actor: <b>{nombre}</b>.
           </p>
           <textarea
             value={motivo}

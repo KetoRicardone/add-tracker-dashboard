@@ -84,9 +84,9 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [], t
             <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", collapsed && "-rotate-90")} />
           </div>
         </button>
-        {canEdit && !cpe.startsWith("__") && (
+        {canEdit && (
           <div className="flex items-center pr-4">
-            <CpAnularButton trazabilidadId={trazabilidadId} cpe={cpe} nombre={actorNombre} />
+            <CpAnularButton trazabilidadId={trazabilidadId} cpe={cpe} nombre={actorNombre} sinCp={cpe.startsWith("__")} />
           </div>
         )}
       </div>

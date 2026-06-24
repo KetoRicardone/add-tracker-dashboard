@@ -7,12 +7,19 @@ import { ResultBadge } from "./ResultBadge";
 import { defForEvent } from "@/lib/events";
 import { emojiForIcon } from "@/lib/eventMeta";
 import { formatDate } from "@/lib/utils";
-import { ArrowRight, Clock, FileText } from "lucide-react";
+import { ArrowRight, Clock, FileText, Truck } from "lucide-react";
 
 export function TrazabilidadCard({ traz }: { traz: Trazabilidad }) {
   const tiposRegistrados = new Set(traz.eventos.map((e) => e.tipo_evento));
   const ultimoEvento = traz.eventos[traz.eventos.length - 1];
   const ultimaDef = ultimoEvento ? defForEvent(ultimoEvento) : null;
+
+  // CPs activas (cantidad de Cartas de Porte distintas en eventos vigentes).
+  const cpCount = new Set(
+    traz.eventos
+      .map((e) => (e.datos?.cpe as string) || (e.datos?.cp_seleccionada as string) || "")
+      .filter(Boolean)
+  ).size;
 
   return (
     <a
@@ -56,7 +63,13 @@ export function TrazabilidadCard({ traz }: { traz: Trazabilidad }) {
                 <span className="text-foreground font-medium">{ultimaDef?.nombre || ultimoEvento.tipo_evento}</span>
               </span>
               <ResultBadge resultado={ultimoEvento.resultado} />
-              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+              <span
+                className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-secondary px-2 py-0.5 font-medium"
+                title={`${cpCount} Carta(s) de Porte activa(s)`}
+              >
+                <Truck className="h-3 w-3" />{cpCount} {cpCount === 1 ? "CP" : "CPs"}
+              </span>
+              <span className="inline-flex items-center gap-1 whitespace-nowrap" title="Eventos">
                 <FileText className="h-3 w-3" />{traz.eventos.length}
               </span>
             </>

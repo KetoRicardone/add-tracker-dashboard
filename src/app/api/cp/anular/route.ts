@@ -25,21 +25,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Indicá un motivo (mín. 3 caracteres)" }, { status: 400 });
   }
 
+  const sinCp = cpe.startsWith("__"); // grupo "Sin CP asignada"
   try {
     const count = await withTransaction(async (c) => {
       const evs = await c.query<{ evento_id: string }>(
-        `SELECT evento_id FROM traz_eventos
-         WHERE trazabilidad_id = $1
-           AND (datos_evento->>'cpe' = $2 OR datos_evento->>'cp_seleccionada' = $2)
-           AND estado_evento NOT IN ('ANULADO', 'SUPERSEDIDO')`,
-        [trazabilidad_id, cpe]
+        sinCp
+          ? `SELECT evento_id FROM traz_eventos
+             WHERE trazabilidad_id = $1
+               AND COALESCE(NULLIF(datos_evento->>'cpe', ''), NULLIF(datos_evento->>'cp_seleccionada', '')) IS NULL
+               AND estado_evento NOT IN ('ANULADO', 'SUPERSEDIDO')`
+          : `SELECT evento_id FROM traz_eventos
+             WHERE trazabilidad_id = $1
+               AND (datos_evento->>'cpe' = $2 OR datos_evento->>'cp_seleccionada' = $2)
+               AND estado_evento NOT IN ('ANULADO', 'SUPERSEDIDO')`,
+        sinCp ? [trazabilidad_id] : [trazabilidad_id, cpe]
       );
       for (const e of evs.rows) {
         await c.query(`UPDATE traz_eventos SET estado_evento = 'ANULADO' WHERE evento_id = $1`, [e.evento_id]);
+        const prefijo = sinCp ? "[Anulación de eventos sin CP]" : `[Anulación de CP ${cpe}]`;
         await c.query(
           `INSERT INTO traz_eventos_anulaciones (evento_id, anulado_por_usuario_id, motivo)
            VALUES ($1, $2, $3)`,
-          [e.evento_id, sesion.uid, `[Anulación de CP ${cpe}] ${motivo}`]
+          [e.evento_id, sesion.uid, `${prefijo} ${motivo}`]
         );
       }
       return evs.rows.length;
