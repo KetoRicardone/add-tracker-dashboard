@@ -8,6 +8,12 @@ export const dynamic = "force-dynamic";
 // (pgcrypto crypt()). No se expone si el usuario existe vs PIN incorrecto.
 export async function POST(req: NextRequest) {
   try {
+    if (!process.env.AUTH_SECRET) {
+      return NextResponse.json(
+        { ok: false, error: "Servidor sin AUTH_SECRET configurado. Seteá la env var en Vercel y redeploy." },
+        { status: 500 }
+      );
+    }
     const { usuario_id, pin } = await req.json();
     if (!usuario_id || !pin) {
       return NextResponse.json({ ok: false, error: "Faltan datos" }, { status: 400 });
