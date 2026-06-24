@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { query, vigenteFilter } from "@/lib/db";
 
 // Evita que Next cachee la respuesta en build: siempre consulta la BD en vivo.
 export const dynamic = "force-dynamic";
@@ -7,6 +7,7 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
+    const vig = await vigenteFilter("e");
     const eventos = await query<{
       evento_id: string;
       tipo_evento: string;
@@ -30,6 +31,7 @@ export async function GET() {
         e.datos_evento AS datos
       FROM traz_eventos e
       JOIN traz_trazabilidades t ON t.trazabilidad_id = e.trazabilidad_id
+      WHERE 1=1${vig}
       ORDER BY e.fecha_hora_evento DESC
       LIMIT 200`
     );
