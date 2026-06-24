@@ -7,6 +7,7 @@ import { formatDate, cn } from "@/lib/utils";
 import { emojiForIcon } from "@/lib/eventMeta";
 import { DataBadge } from "./DataBadge";
 import { EventCompactRow } from "./EventCompactRow";
+import { CpAnularButton } from "./CpAnularButton";
 import { Camera, CheckCircle2, ChevronDown, Circle, Clock, Eye, PenLine, ShieldAlert, Truck, User } from "lucide-react";
 
 /** Mapea un grupo RGAN al evento_tipo de firma que lo cierra */
@@ -34,13 +35,16 @@ function buildEventGroups(evts: TrazEvento[]) {
   return groups;
 }
 
-export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [] }: {
+export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [], trazabilidadId, canEdit = false, actorNombre = "" }: {
   cpe: string;
   evts: TrazEvento[];
   ocrEvt?: TrazEvento;
   doneCount: number;
   totalDefs: number;
   firmas?: Firma[];
+  trazabilidadId: string;
+  canEdit?: boolean;
+  actorNombre?: string;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -54,31 +58,38 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [] }:
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
       {/* CP Header (click para contraer/expandir) */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className={cn("w-full p-4 flex items-center justify-between bg-secondary/20 text-left hover:bg-secondary/30 transition-colors", !collapsed && "border-b border-border")}
-      >
-        <div className="flex items-center gap-3">
-          <Truck className="h-5 w-5 text-primary" />
-          <div>
-            <h2 className="font-mono font-semibold text-sm">{cpe.startsWith("__") ? "Sin CP asignada" : `CP ${cpe}`}</h2>
-            <p className="text-xs text-muted-foreground">{doneCount} de {totalDefs} eventos · {Math.round((doneCount / totalDefs) * 100)}%</p>
+      <div className={cn("flex items-stretch bg-secondary/20", !collapsed && "border-b border-border")}>
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="flex flex-1 items-center justify-between p-4 text-left hover:bg-secondary/30 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Truck className="h-5 w-5 text-primary" />
+            <div>
+              <h2 className="font-mono font-semibold text-sm">{cpe.startsWith("__") ? "Sin CP asignada" : `CP ${cpe}`}</h2>
+              <p className="text-xs text-muted-foreground">{doneCount} de {totalDefs} eventos · {Math.round((doneCount / totalDefs) * 100)}%</p>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex gap-0.5 h-2">
-            {[1, 2, 3, 4].map((fase) => {
-              const faseDefs = EVENT_DEFINITIONS.filter((d) => d.fase === fase);
-              const faseDone = faseDefs.filter((d) => completedTypes.has(d.tipo_evento)).length;
-              const pct = Math.round((faseDone / faseDefs.length) * 100);
-              return <div key={fase} className="w-5 h-full bg-secondary rounded-full overflow-hidden" title={`F${fase}: ${faseDone}/${faseDefs.length}`}>
-                <div className={cn("h-full rounded-full", pct === 100 ? "bg-success" : pct > 0 ? "bg-primary" : "")} style={{ width: `${pct}%` }} />
-              </div>;
-            })}
+          <div className="flex items-center gap-3">
+            <div className="flex gap-0.5 h-2">
+              {[1, 2, 3, 4].map((fase) => {
+                const faseDefs = EVENT_DEFINITIONS.filter((d) => d.fase === fase);
+                const faseDone = faseDefs.filter((d) => completedTypes.has(d.tipo_evento)).length;
+                const pct = Math.round((faseDone / faseDefs.length) * 100);
+                return <div key={fase} className="w-5 h-full bg-secondary rounded-full overflow-hidden" title={`F${fase}: ${faseDone}/${faseDefs.length}`}>
+                  <div className={cn("h-full rounded-full", pct === 100 ? "bg-success" : pct > 0 ? "bg-primary" : "")} style={{ width: `${pct}%` }} />
+                </div>;
+              })}
+            </div>
+            <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", collapsed && "-rotate-90")} />
           </div>
-          <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", collapsed && "-rotate-90")} />
-        </div>
-      </button>
+        </button>
+        {canEdit && !cpe.startsWith("__") && (
+          <div className="flex items-center pr-4">
+            <CpAnularButton trazabilidadId={trazabilidadId} cpe={cpe} nombre={actorNombre} />
+          </div>
+        )}
+      </div>
 
       {!collapsed && (<>
 
@@ -162,7 +173,7 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [] }:
                   {group.evts.map((evt) => {
                     const def = defForEvent(evt);
                     const isOK = evt.resultado === "OK" || evt.resultado === "APROBADO";
-                    return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} />;
+                    return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} canEdit={canEdit} actorNombre={actorNombre} />;
                   })}
                 </div>
               </div>
@@ -173,7 +184,7 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [] }:
           return group.evts.map((evt) => {
             const def = defForEvent(evt);
             const isOK = evt.resultado === "OK" || evt.resultado === "APROBADO";
-            return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} />;
+            return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} canEdit={canEdit} actorNombre={actorNombre} />;
           });
         })}
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { query, vigenteFilter } from "@/lib/db";
 
 // Evita que Next cachee la respuesta en build: siempre consulta la BD en vivo.
 export const dynamic = "force-dynamic";
@@ -31,6 +31,7 @@ export async function GET(
       return NextResponse.json({ error: "Trazabilidad no encontrada" }, { status: 404 });
     }
 
+    const vig = await vigenteFilter("e");
     const eventos = await query<{
       evento_id: string;
       tipo_evento: string;
@@ -47,7 +48,7 @@ export async function GET(
         e.responsable_nombre AS responsable,
         e.datos_evento AS datos
       FROM traz_eventos e
-      WHERE e.trazabilidad_id = $1
+      WHERE e.trazabilidad_id = $1${vig}
       ORDER BY e.fecha_hora_evento`,
       [id]
     );

@@ -6,6 +6,7 @@ import { formatDate, cn } from "@/lib/utils";
 import { emojiForIcon } from "@/lib/eventMeta";
 import { ResultBadge } from "./ResultBadge";
 import { EventDataView } from "./EventDataView";
+import { EventActions } from "./EventActions";
 import { CheckCircle2, ChevronDown, MessageSquareText, ShieldAlert } from "lucide-react";
 
 /** Extrae observaciones de datos_evento — puede ser string o array */
@@ -19,10 +20,12 @@ function getObservaciones(datos: Record<string, unknown>): string | null {
   return null;
 }
 
-export function EventCompactRow({ evt, def, isOK }: {
+export function EventCompactRow({ evt, def, isOK, canEdit = false, actorNombre = "" }: {
   evt: TrazEvento;
   def?: { nombre: string; rgan: string; icon: string; gate: boolean };
   isOK: boolean;
+  canEdit?: boolean;
+  actorNombre?: string;
 }) {
   const [open, setOpen] = useState(false);
   const datos = evt.datos || {};
@@ -67,6 +70,7 @@ export function EventCompactRow({ evt, def, isOK }: {
             <summary className="cursor-pointer text-muted-foreground/70 hover:text-muted-foreground">Ver datos crudos (JSON)</summary>
             <pre className="mt-2 rounded bg-secondary/30 p-2 font-mono text-[10px] whitespace-pre-wrap break-all text-muted-foreground">{JSON.stringify(datos, null, 2)}</pre>
           </details>
+          {canEdit && <EventActions eventoId={evt.evento_id} datos={datos} nombre={actorNombre} />}
         </div>
       )}
     </div>

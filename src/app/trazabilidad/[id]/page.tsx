@@ -5,6 +5,7 @@ import { CPCard } from "@/components/CPCard";
 import { FirmasCard } from "@/components/FirmasCard";
 import { ArrowLeft, Calendar, MapPin, FileText, Layers } from "lucide-react";
 import { headers } from "next/headers";
+import { getSesion } from "@/lib/auth";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +54,7 @@ function groupByCPE(eventos: TrazEvento[]): Map<string, TrazEvento[]> {
 }
 
 export default async function TrazabilidadDetailPage({ params }: { params: { id: string } }) {
+  const sesion = getSesion();
   const traz = await getTrazabilidad(params.id);
   if (!traz) {
     return (
@@ -107,7 +109,7 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
         Array.from(cpGroups.entries()).map(([cpe, evts]) => {
           const ocrEvt = evts.find((e) => e.tipo_evento === "EV_OCR_CARTA_PORTE");
           const doneCount = new Set(evts.map((e) => e.tipo_evento)).size;
-          return <CPCard key={cpe} cpe={cpe} evts={evts} ocrEvt={ocrEvt} doneCount={doneCount} totalDefs={totalDefs} firmas={traz.firmas || []} />;
+          return <CPCard key={cpe} cpe={cpe} evts={evts} ocrEvt={ocrEvt} doneCount={doneCount} totalDefs={totalDefs} firmas={traz.firmas || []} trazabilidadId={traz.trazabilidad_id} canEdit={!!sesion} actorNombre={sesion?.nombre || ""} />;
         })
       )}
     </div>

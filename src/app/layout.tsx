@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { AutoRefresh } from "@/components/AutoRefresh";
+import { LoginControl } from "@/components/LoginControl";
+import { getSesion } from "@/lib/auth";
 import "./globals.css";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "ADD Tracker — Dashboard",
@@ -8,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const sesion = getSesion();
   return (
     <html lang="es" className="dark">
       <body className="min-h-screen bg-background font-sans antialiased">
@@ -27,6 +32,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <a href="/eventos" className="rounded-md px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
                   Eventos
                 </a>
+                <div className="ml-2 pl-2 border-l border-border">
+                  <LoginControl nombre={sesion?.nombre ?? null} />
+                </div>
               </nav>
             </div>
           </header>

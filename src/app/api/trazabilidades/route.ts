@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { query, vigenteFilter } from "@/lib/db";
 import { Trazabilidad } from "@/lib/types";
 import { EVENT_DEFINITIONS } from "@/lib/events";
 
@@ -9,6 +9,7 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
+    const vig = await vigenteFilter("e");
     const rows = await query<{
       trazabilidad_id: string;
       codigo_grano: string;
@@ -36,7 +37,7 @@ export async function GET() {
           ) ORDER BY e.fecha_hora_evento
         ) FILTER (WHERE e.evento_id IS NOT NULL), '[]'::jsonb) AS eventos
       FROM traz_trazabilidades t
-      LEFT JOIN traz_eventos e ON e.trazabilidad_id = t.trazabilidad_id
+      LEFT JOIN traz_eventos e ON e.trazabilidad_id = t.trazabilidad_id${vig}
       WHERE t.estado_trazabilidad = 'ABIERTA'
       GROUP BY t.trazabilidad_id
       ORDER BY t.created_at DESC
