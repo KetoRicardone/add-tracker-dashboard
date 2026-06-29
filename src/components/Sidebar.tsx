@@ -1,57 +1,87 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, ListChecks, Settings2, Menu, X } from "lucide-react";
+import {
+  LayoutDashboard,
+  ListChecks,
+  Settings2,
+  Users,
+  ShieldCheck,
+  PackageSearch,
+  ChevronDown,
+  Menu,
+  X,
+} from "lucide-react";
 import { LoginControl } from "./LoginControl";
 import { cn } from "@/lib/utils";
 
+const adminChildren = [
+  { tab: "usuarios", label: "Usuarios", icon: Users },
+  { tab: "permisos", label: "Roles", icon: ShieldCheck },
+  { tab: "precintos", label: "Precintos", icon: PackageSearch },
+];
+
 export function Sidebar({ nombre, isAdmin }: { nombre: string | null; isAdmin: boolean }) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-
-  const items = [
-    { href: "/", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/eventos", label: "Eventos", icon: ListChecks },
-    ...(isAdmin ? [{ href: "/admin", label: "Administración", icon: Settings2 }] : []),
-  ];
-  const active = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const searchParams = useSearchParams();
+  const [open, setOpen] = useState(false); // drawer mobile
+  const onAdmin = pathname.startsWith("/admin");
+  const [adminOpen, setAdminOpen] = useState(onAdmin);
+  const currentTab = searchParams.get("tab") || "usuarios";
 
   const Logo = () => (
-    <Link
-      href="/"
-      onClick={() => setOpen(false)}
-      className="flex items-center gap-2 text-lg font-semibold tracking-tight"
-    >
-      <span className="flex h-7 w-7 items-center justify-center rounded bg-primary text-xs font-bold text-primary-foreground">
-        A
-      </span>
+    <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+      <span className="flex h-7 w-7 items-center justify-center rounded bg-primary text-xs font-bold text-primary-foreground">A</span>
       <span>ADD Tracker</span>
     </Link>
   );
 
+  const linkClass = (activo: boolean, indent = false) =>
+    cn(
+      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+      indent && "py-1.5 text-[13px]",
+      activo ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+    );
+
   const Nav = () => (
     <nav className="flex flex-col gap-1">
-      {items.map((it) => {
-        const Icon = it.icon;
-        return (
-          <Link
-            key={it.href}
-            href={it.href}
-            onClick={() => setOpen(false)}
-            className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-              active(it.href)
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-            )}
-          >
-            <Icon className="h-4 w-4" />
-            {it.label}
-          </Link>
-        );
-      })}
+      <Link href="/" onClick={() => setOpen(false)} className={linkClass(pathname === "/")}>
+        <LayoutDashboard className="h-4 w-4" /> Dashboard
+      </Link>
+      <Link href="/eventos" onClick={() => setOpen(false)} className={linkClass(pathname.startsWith("/eventos"))}>
+        <ListChecks className="h-4 w-4" /> Eventos
+      </Link>
+
+      {isAdmin && (
+        <div>
+          <button onClick={() => setAdminOpen((v) => !v)} className={cn(linkClass(onAdmin), "w-full justify-between")}>
+            <span className="flex items-center gap-3">
+              <Settings2 className="h-4 w-4" /> Administración
+            </span>
+            <ChevronDown className={cn("h-4 w-4 transition-transform", adminOpen && "rotate-180")} />
+          </button>
+          {adminOpen && (
+            <div className="ml-4 mt-1 flex flex-col gap-1 border-l border-border pl-2">
+              {adminChildren.map((c) => {
+                const Icon = c.icon;
+                const activo = onAdmin && currentTab === c.tab;
+                return (
+                  <Link
+                    key={c.tab}
+                    href={`/admin?tab=${c.tab}`}
+                    onClick={() => setOpen(false)}
+                    className={linkClass(activo, true)}
+                  >
+                    <Icon className="h-3.5 w-3.5" /> {c.label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </nav>
   );
 

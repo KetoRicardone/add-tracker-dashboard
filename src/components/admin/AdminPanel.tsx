@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Users, ShieldCheck, PackageSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UsuariosTab, Usuario } from "./UsuariosTab";
@@ -15,8 +16,18 @@ export interface AdminData {
   precargas: PrecargaAdminData["precargas"];
 }
 
+type Tab = "usuarios" | "permisos" | "precintos";
+
 export function AdminPanel({ data }: { data: AdminData }) {
-  const [tab, setTab] = useState<"usuarios" | "permisos" | "precintos">("usuarios");
+  const searchParams = useSearchParams();
+  const paramTab = searchParams.get("tab") as Tab | null;
+  const [tab, setTab] = useState<Tab>(paramTab || "usuarios");
+
+  // Sincroniza con el submenú lateral (navegación a /admin?tab=...).
+  useEffect(() => {
+    if (paramTab && paramTab !== tab) setTab(paramTab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramTab]);
 
   const tabs = [
     { id: "usuarios" as const, label: "Usuarios", icon: Users, count: data.usuarios.length },
