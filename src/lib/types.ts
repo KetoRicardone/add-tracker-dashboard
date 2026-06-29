@@ -52,3 +52,25 @@ export interface Stats {
   eventos_hoy: number;
   granos_unicos: number;
 }
+
+export interface Precarga {
+  precarga_id: string;
+  trazabilidad_id: string;
+  cpe: string | null;
+  foto_file_id: string;
+  usuario_id: string | null;
+  estado: string;
+  created_at: string;
+  items: PrecargaItem[];
+}
+
+export interface PrecargaItem {
+  item_id: string;
+  precarga_id: string;
+  numero_precinto: string;
+  orden: number;
+  peso_kg: number | null;
+  estado: string;
+  peso_corregido: boolean;
+  created_at: string;
+}

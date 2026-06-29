@@ -3,6 +3,7 @@ import { query } from "@/lib/db";
 import { AdminPanel, AdminData } from "@/components/admin/AdminPanel";
 import { Usuario } from "@/components/admin/UsuariosTab";
 import { Permiso, RolPermiso } from "@/components/admin/PermisosMatrix";
+import type { Precarga, PrecargaItem } from "@/lib/types";
 import { ShieldAlert, Settings2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -29,10 +30,35 @@ async function loadData(): Promise<AdminData> {
     permisos = await query<Permiso>(`SELECT clave, descripcion FROM permisos ORDER BY clave`);
     rolPermisos = await query<RolPermiso>(`SELECT rol::text AS rol, permiso_clave FROM rol_permisos`);
   } catch {
-    // F0_009 no aplicada todavía → la matriz muestra el aviso.
+    // F0_009 no aplicada todavia → la matriz muestra el aviso.
   }
 
-  return { usuarios, roles, permisos, rolPermisos };
+  let precargas: Precarga[] = [];
+  try {
+    const rows = await query<Precarga & { items_json: string }>(
+      `SELECT p.*, COALESCE(
+        (SELECT jsonb_agg(jsonb_build_object(
+          'item_id', i.item_id, 'precarga_id', i.precarga_id,
+          'numero_precinto', i.numero_precinto, 'orden', i.orden,
+          'peso_kg', i.peso_kg, 'estado', i.estado,
+          'peso_corregido', i.peso_corregido, 'created_at', i.created_at
+        ) ORDER BY i.orden)
+         FROM traz_precarga_items i WHERE i.precarga_id = p.precarga_id),
+        '[]'::jsonb
+      )::text AS items_json
+       FROM traz_precarga_ocr p
+       ORDER BY p.created_at DESC
+       LIMIT 100`
+    );
+    precargas = rows.map((r) => ({
+      ...r,
+      items: JSON.parse(r.items_json || "[]") as PrecargaItem[],
+    }));
+  } catch {
+    // F0_010 no aplicada todavia.
+  }
+
+  return { usuarios, roles, permisos, rolPermisos, precargas };
 }
 
 export default async function AdminPage() {

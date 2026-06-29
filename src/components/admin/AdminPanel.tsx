@@ -1,24 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { Users, ShieldCheck } from "lucide-react";
+import { Users, ShieldCheck, PackageSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UsuariosTab, Usuario } from "./UsuariosTab";
 import { PermisosMatrix, Permiso, RolPermiso } from "./PermisosMatrix";
+import { PrecintosTab, PrecargaAdminData } from "./PrecintosTab";
 
 export interface AdminData {
   usuarios: Usuario[];
   roles: string[];
   permisos: Permiso[];
   rolPermisos: RolPermiso[];
+  precargas: PrecargaAdminData["precargas"];
 }
 
 export function AdminPanel({ data }: { data: AdminData }) {
-  const [tab, setTab] = useState<"usuarios" | "permisos">("usuarios");
+  const [tab, setTab] = useState<"usuarios" | "permisos" | "precintos">("usuarios");
 
   const tabs = [
     { id: "usuarios" as const, label: "Usuarios", icon: Users, count: data.usuarios.length },
     { id: "permisos" as const, label: "Roles y permisos", icon: ShieldCheck, count: data.permisos.length },
+    { id: "precintos" as const, label: "Precintos", icon: PackageSearch, count: data.precargas.length },
   ];
 
   return (
@@ -47,8 +50,10 @@ export function AdminPanel({ data }: { data: AdminData }) {
 
       {tab === "usuarios" ? (
         <UsuariosTab usuarios={data.usuarios} roles={data.roles} />
-      ) : (
+      ) : tab === "permisos" ? (
         <PermisosMatrix permisos={data.permisos} roles={data.roles} rolPermisos={data.rolPermisos} />
+      ) : (
+        <PrecintosTab data={{ precargas: data.precargas }} />
       )}
     </div>
   );
