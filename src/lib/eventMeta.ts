@@ -65,6 +65,7 @@ const FIELD_LABELS: Record<string, string> = {
   sin_residuos_quimicos: "Sin residuos químicos",
   checklist_respuestas: "Checklist",
   respuestas_contaminacion: "Contaminación",
+  glifo: "Glifo",
   cp_seleccionada: "Carta de Porte",
   cpe: "Carta de Porte",
   tipo_carga: "Tipo de carga",
@@ -117,6 +118,11 @@ export function unitForKey(key: string): string {
 /** Formatea un valor escalar para mostrar */
 export function formatScalar(key: string, value: unknown): string {
   if (value === null || value === undefined || value === "") return "—";
+  if (key === "glifo") {
+    const g = String(value).toUpperCase();
+    if (g === "CON") return "Con Glifo";
+    if (g === "SIN") return "Sin Glifo";
+  }
   const unit = unitForKey(key);
   if (typeof value === "number") return unit ? `${value} ${unit}` : String(value);
   return unit ? `${value} ${unit}` : String(value);
@@ -127,4 +133,14 @@ export function isBooleanMap(value: unknown): value is Record<string, boolean> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const vals = Object.values(value as Record<string, unknown>);
   return vals.length > 0 && vals.every((v) => typeof v === "boolean");
+}
+
+/** Valor de un ítem de checklist: SI (true) / NO (false) / No aplica ('NA'). */
+export type ChecklistValue = boolean | "NA";
+
+/** ¿es un checklist? objeto plano cuyos valores son boolean o 'NA' (tri-estado). */
+export function isChecklistMap(value: unknown): value is Record<string, ChecklistValue> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const vals = Object.values(value as Record<string, unknown>);
+  return vals.length > 0 && vals.every((v) => typeof v === "boolean" || v === "NA");
 }

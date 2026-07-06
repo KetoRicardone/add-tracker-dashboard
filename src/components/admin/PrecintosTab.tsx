@@ -2,12 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { PackageSearch, ChevronDown, ChevronRight, Pencil, Trash2, Check, X, Loader2, Scale } from "lucide-react";
+import { PackageSearch, ChevronDown, ChevronRight, Pencil, Trash2, Check, X, Loader2, Scale, Link2 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
+import { Modal } from "@/components/Modal";
 import type { Precarga, PrecargaItem } from "@/lib/types";
 
 export interface PrecargaAdminData {
   precargas: Precarga[];
+}
+
+interface CpDisponible {
+  trazabilidad_id: string;
+  codigo_grano: string;
+  codigo_establecimiento: string;
+  campania: string;
+  cpe: string | null;
 }
 
 export function PrecintosTab({ data }: { data: PrecargaAdminData }) {
@@ -21,6 +30,55 @@ export function PrecintosTab({ data }: { data: PrecargaAdminData }) {
   const [editNumValue, setEditNumValue] = useState("");
   const [editingPeso, setEditingPeso] = useState<string | null>(null);
   const [editPesoValue, setEditPesoValue] = useState("");
+
+  // Vincular sin-CP → CP
+  const [vincularFor, setVincularFor] = useState<string | null>(null);
+  const [cps, setCps] = useState<CpDisponible[]>([]);
+  const [cpsLoading, setCpsLoading] = useState(false);
+  const [cpSel, setCpSel] = useState("");
+  const [vincError, setVincError] = useState("");
+
+  async function openVincular(precargaId: string) {
+    setVincularFor(precargaId);
+    setCpSel("");
+    setVincError("");
+    setCps([]);
+    setCpsLoading(true);
+    try {
+      const res = await fetch("/api/admin/precargas/cps-disponibles");
+      const d = await res.json();
+      if (!res.ok || !d.ok) setVincError(d.error || "No se pudieron cargar las CPs");
+      else setCps(d.cps || []);
+    } catch {
+      setVincError("No se pudieron cargar las CPs");
+    } finally {
+      setCpsLoading(false);
+    }
+  }
+
+  async function confirmVincular() {
+    if (!vincularFor || cpSel === "") return;
+    const cp = cps[Number(cpSel)];
+    if (!cp) return;
+    setVincError("");
+    setBusy(`${vincularFor}:vinc`);
+    try {
+      const res = await fetch(`/api/admin/precargas/${vincularFor}/vincular`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trazabilidad_id: cp.trazabilidad_id, cpe: cp.cpe }),
+      });
+      const d = await res.json();
+      if (!res.ok || !d.ok) {
+        setVincError(d.error || "No se pudo vincular");
+        return;
+      }
+      setVincularFor(null);
+      router.refresh();
+    } finally {
+      setBusy("");
+    }
+  }
 
   async function patchNumero(itemId: string, numeroPrecinto: string) {
     setError("");
@@ -128,7 +186,13 @@ export function PrecintosTab({ data }: { data: PrecargaAdminData }) {
                   </td>
                   <td className="px-3 py-2" onClick={() => setExpanded(expanded === p.precarga_id ? null : p.precarga_id)}>
                     <div className="font-medium">{p.cpe || "—"}</div>
-                    <div className="text-xs text-muted-foreground font-mono">{p.trazabilidad_id}</div>
+                    {p.trazabilidad_id ? (
+                      <div className="text-xs text-muted-foreground font-mono">{p.trazabilidad_id}</div>
+                    ) : (
+                      <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-500">
+                        🔓 Sin CP
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-2" onClick={() => setExpanded(expanded === p.precarga_id ? null : p.precarga_id)}>
                     {p.items.length} precinto{p.items.length !== 1 ? "s" : ""}
@@ -141,6 +205,21 @@ export function PrecintosTab({ data }: { data: PrecargaAdminData }) {
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex items-center justify-end gap-1">
+                      {!p.trazabilidad_id && p.estado !== "DESCARTADO" && (
+                        <button
+                          title="Vincular a una Carta de Porte"
+                          onClick={(e) => { e.stopPropagation(); openVincular(p.precarga_id); }}
+                          disabled={busy === `${p.precarga_id}:vinc`}
+                          className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 px-2 py-1 text-xs font-medium text-amber-500 hover:bg-amber-500/10 transition-colors disabled:opacity-50"
+                        >
+                          {busy === `${p.precarga_id}:vinc` ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Link2 className="h-3.5 w-3.5" />
+                          )}
+                          Vincular
+                        </button>
+                      )}
                       <button
                         title="Descartar precarga"
                         onClick={(e) => { e.stopPropagation(); deletePrecarga(p.precarga_id); }}
@@ -292,6 +371,56 @@ export function PrecintosTab({ data }: { data: PrecargaAdminData }) {
           </tbody>
         </table>
       </div>
+
+      <Modal open={vincularFor !== null} onClose={() => setVincularFor(null)} title="Vincular precarga a una Carta de Porte">
+        <div className="space-y-4">
+          <p className="text-xs text-muted-foreground">
+            Elegí la Carta de Porte a la que corresponde esta precarga sin CP. Los precintos quedarán disponibles para RGAN-55.
+          </p>
+          {cpsLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Cargando Cartas de Porte…
+            </div>
+          ) : cps.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No hay Cartas de Porte disponibles (con OCR y sin precarga). Cargá la CP desde el bot primero.
+            </p>
+          ) : (
+            <div>
+              <label className="mb-1 block text-xs font-medium">Carta de Porte</label>
+              <select
+                value={cpSel}
+                onChange={(e) => setCpSel(e.target.value)}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Seleccioná…</option>
+                {cps.map((cp, i) => (
+                  <option key={`${cp.trazabilidad_id}-${cp.cpe ?? i}`} value={String(i)}>
+                    {cp.cpe ? `CP ${cp.cpe}` : cp.trazabilidad_id} — {cp.trazabilidad_id} ({cp.codigo_grano})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          {vincError && <p className="text-xs text-destructive">{vincError}</p>}
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setVincularFor(null)}
+              className="rounded-md border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-secondary"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={confirmVincular}
+              disabled={cpSel === "" || busy.endsWith(":vinc")}
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {busy.endsWith(":vinc") ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
+              Vincular
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

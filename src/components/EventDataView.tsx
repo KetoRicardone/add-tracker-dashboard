@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
-import { humanizeKey, formatScalar, isBooleanMap } from "@/lib/eventMeta";
-import { Check, X, AlertTriangle } from "lucide-react";
+import { humanizeKey, formatScalar, isChecklistMap, type ChecklistValue } from "@/lib/eventMeta";
+import { Check, X, AlertTriangle, Minus } from "lucide-react";
 
 // Claves que se muestran en otro lado (observaciones) o son ruido visual.
 const SKIP_KEYS = new Set([
@@ -10,7 +10,14 @@ const SKIP_KEYS = new Set([
   "fecha",
   "checklist_index",
   "checklist_respuestas_meta",
+  "humedad_pct_max", // umbral interno de especificación, no dato operativo
 ]);
+
+// Valores basura que no deben mostrarse (grano/CP sin cargar dejan "null" string).
+const JUNK_VALUES = new Set(["null", "undefined", "NaN", "-"]);
+function isJunk(v: unknown): boolean {
+  return typeof v === "string" && JUNK_VALUES.has(v.trim().toLowerCase());
+}
 
 // Boolean maps donde `true` es una alerta (no un "OK").
 const FLAG_WHEN_TRUE = new Set(["respuestas_contaminacion"]);
@@ -19,7 +26,17 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
   return !!v && typeof v === "object" && !Array.isArray(v);
 }
 
-function BooleanItem({ label, value, flagWhenTrue }: { label: string; value: boolean; flagWhenTrue: boolean }) {
+function BooleanItem({ label, value, flagWhenTrue }: { label: string; value: ChecklistValue; flagWhenTrue: boolean }) {
+  // Tri-estado: SI (true) / NO (false) / No aplica ('NA').
+  if (value === "NA") {
+    return (
+      <div className="flex items-center gap-2 rounded-md bg-secondary/40 px-2.5 py-1.5">
+        <Minus className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+        <span className="text-xs flex-1 min-w-0 truncate">{label}</span>
+        <span className="text-[10px] font-semibold text-muted-foreground">No aplica</span>
+      </div>
+    );
+  }
   const isAlert = flagWhenTrue ? value : !value;
   return (
     <div className="flex items-center gap-2 rounded-md bg-secondary/40 px-2.5 py-1.5">
@@ -38,9 +55,9 @@ function BooleanItem({ label, value, flagWhenTrue }: { label: string; value: boo
   );
 }
 
-function ChecklistBlock({ title, obj, flagWhenTrue }: { title: string; obj: Record<string, boolean>; flagWhenTrue: boolean }) {
+function ChecklistBlock({ title, obj, flagWhenTrue }: { title: string; obj: Record<string, ChecklistValue>; flagWhenTrue: boolean }) {
   const entries = Object.entries(obj);
-  const okCount = entries.filter(([, v]) => (flagWhenTrue ? !v : v)).length;
+  const okCount = entries.filter(([, v]) => v !== "NA" && (flagWhenTrue ? !v : v)).length;
   return (
     <div className="rounded-lg border border-border/60 bg-card/40 p-3">
       <div className="flex items-center justify-between mb-2">
@@ -98,13 +115,14 @@ function ListBlock({ title, items }: { title: string; items: Record<string, unkn
 /** Clasifica las claves de un objeto en escalares, checklists, listas y sub-objetos. */
 function partition(obj: Record<string, unknown>) {
   const scalars: [string, unknown][] = [];
-  const checklists: [string, Record<string, boolean>][] = [];
+  const checklists: [string, Record<string, ChecklistValue>][] = [];
   const lists: [string, Record<string, unknown>[]][] = [];
   const nested: [string, Record<string, unknown>][] = [];
 
   for (const [k, v] of Object.entries(obj)) {
     if (SKIP_KEYS.has(k)) continue;
-    if (isBooleanMap(v)) checklists.push([k, v]);
+    if (isJunk(v)) continue; // "null"/"undefined" string → no mostrar
+    if (isChecklistMap(v)) checklists.push([k, v]);
     else if (typeof v === "boolean") scalars.push([k, v ? "Sí" : "No"]);
     else if (Array.isArray(v)) {
       if (v.length === 0) continue;

@@ -55,12 +55,14 @@ export interface Stats {
 
 export interface Precarga {
   precarga_id: string;
-  trazabilidad_id: string;
+  trazabilidad_id: string | null;
   cpe: string | null;
   foto_file_id: string;
   usuario_id: string | null;
   estado: string;
   created_at: string;
+  vinculado_en: string | null;
+  vinculado_por: string | null;
   items: PrecargaItem[];
 }
 

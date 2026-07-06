@@ -1,6 +1,8 @@
 import { Trazabilidad } from "@/lib/types";
 import { TrazabilidadCard } from "@/components/TrazabilidadCard";
 import { StatsGrid } from "@/components/StatsGrid";
+import { LoginRequired } from "@/components/LoginRequired";
+import { getSesion } from "@/lib/auth";
 import { RefreshCw, Filter } from "lucide-react";
 
 import { headers } from "next/headers";
@@ -26,6 +28,8 @@ async function getTrazabilidades(): Promise<Trazabilidad[]> {
 }
 
 export default async function DashboardPage() {
+  if (!getSesion()) return <LoginRequired />;
+
   const trazabilidades = await getTrazabilidades();
 
   return (

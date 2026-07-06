@@ -4,6 +4,11 @@ import { formatDate } from "@/lib/utils";
 import { Calendar, Filter, ArrowRight } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
+import { LoginRequired } from "@/components/LoginRequired";
+import { getSesion } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 async function getEventos(): Promise<(TrazEvento & { trazabilidad_id: string; codigo_grano: string; campania: string })[]> {
   try {
@@ -23,6 +28,8 @@ async function getEventos(): Promise<(TrazEvento & { trazabilidad_id: string; co
 }
 
 export default async function EventosPage() {
+  if (!getSesion()) return <LoginRequired />;
+
   const eventos = await getEventos();
   const hoy = new Date().toISOString().split("T")[0];
   const eventosHoy = eventos.filter((e) => e.fecha?.startsWith(hoy));

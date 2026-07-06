@@ -30,6 +30,7 @@ export function Sidebar({ nombre, isAdmin }: { nombre: string | null; isAdmin: b
   const onAdmin = pathname.startsWith("/admin");
   const [adminOpen, setAdminOpen] = useState(onAdmin);
   const currentTab = searchParams.get("tab") || "usuarios";
+  const loggedIn = !!nombre; // sin sesión no se muestran los accesos
 
   const Logo = () => (
     <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2 text-lg font-semibold tracking-tight">
@@ -45,7 +46,15 @@ export function Sidebar({ nombre, isAdmin }: { nombre: string | null; isAdmin: b
       activo ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
     );
 
-  const Nav = () => (
+  const Nav = () => {
+    if (!loggedIn) {
+      return (
+        <p className="px-3 py-2 text-xs text-muted-foreground">
+          Iniciá sesión para acceder al panel.
+        </p>
+      );
+    }
+    return (
     <nav className="flex flex-col gap-1">
       <Link href="/" onClick={() => setOpen(false)} className={linkClass(pathname === "/")}>
         <LayoutDashboard className="h-4 w-4" /> Dashboard
@@ -83,7 +92,8 @@ export function Sidebar({ nombre, isAdmin }: { nombre: string | null; isAdmin: b
         </div>
       )}
     </nav>
-  );
+    );
+  };
 
   return (
     <>
