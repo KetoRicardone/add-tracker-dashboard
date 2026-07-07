@@ -363,7 +363,7 @@ export function PrecintosTab({ data }: { data: PrecargaAdminData }) {
                   <div className="flex flex-col items-center gap-2">
                     <PackageSearch className="h-8 w-8" />
                     <p>No hay precargas registradas.</p>
-                    <p className="text-xs">Usa el bot de Telegram → "Pre Carga Presinto" para crear una.</p>
+                    <p className="text-xs">Usa el bot de Telegram → "Pre Carga Precinto" para crear una.</p>
                   </div>
                 </td>
               </tr>
