@@ -5,7 +5,7 @@ import { getSesion } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 // POST: Vincular una precarga SIN CP a una Carta de Porte (trazabilidad_id + cpe).
-// Misma operacion que hace el bot (SWF_PRECARGA_PRESINTO ▸ DB ▸ Update Vincular
+// Misma operacion que hace el bot (SWF_PRECARGA_PRECINTO ▸ DB ▸ Update Vincular
 // Precarga), con la guarda `trazabilidad_id IS NULL` para resolver la carrera
 // (si otro usuario/operario ya la vinculo, este UPDATE afecta 0 filas).
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {

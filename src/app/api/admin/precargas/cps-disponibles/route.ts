@@ -14,7 +14,7 @@ export interface CpDisponible {
 
 // GET: Cartas de Porte con OCR y sin precarga confirmada — candidatas para
 // vincular una precarga sin CP. Misma logica que el selector del bot
-// (SWF_PRECARGA_PRESINTO ▸ DB ▸ Query CPs Pendientes).
+// (SWF_PRECARGA_PRECINTO ▸ DB ▸ Query CPs Pendientes).
 export async function GET() {
   const sesion = getSesion();
   if (!sesion) return NextResponse.json({ ok: false, error: "No autenticado" }, { status: 401 });
