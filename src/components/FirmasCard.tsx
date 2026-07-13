@@ -7,7 +7,7 @@ import { firmaEventoLabel } from "@/lib/eventMeta";
 import { PenLine, ShieldCheck, ChevronDown } from "lucide-react";
 
 export function FirmasCard({ firmas }: { firmas: Firma[] }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false); // comprimida por defecto
   if (!firmas || firmas.length === 0) return null;
 
   return (
