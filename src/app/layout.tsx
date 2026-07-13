@@ -7,7 +7,7 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "ADD Tracker — Dashboard",
+  title: "ADD Tracker — Panel de control",
   description: "Trazabilidad operacional de granos — Anta del Dorado S.A.",
 };
 

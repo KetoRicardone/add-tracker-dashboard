@@ -84,7 +84,7 @@ export function Sidebar({ nombre, isAdmin }: { nombre: string | null; isAdmin: b
     return (
     <nav className="flex flex-col gap-1">
       <Link href="/" onClick={() => setOpen(false)} className={linkClass(pathname === "/")}>
-        <LayoutDashboard className="h-4 w-4" /> Dashboard
+        <LayoutDashboard className="h-4 w-4" /> Panel de control
       </Link>
       <Link href="/eventos" onClick={() => setOpen(false)} className={linkClass(pathname.startsWith("/eventos"))}>
         <ListChecks className="h-4 w-4" /> Eventos

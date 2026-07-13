@@ -70,7 +70,7 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      <Link href="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" />Dashboard</Link>
+      <Link href="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" />Panel de control</Link>
 
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-primary/10 via-card to-card">

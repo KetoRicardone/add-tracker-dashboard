@@ -1,9 +1,7 @@
 import { Trazabilidad } from "@/lib/types";
-import { TrazabilidadCard } from "@/components/TrazabilidadCard";
-import { StatsGrid } from "@/components/StatsGrid";
+import { TrazabilidadesExplorer } from "@/components/TrazabilidadesExplorer";
 import { LoginRequired } from "@/components/LoginRequired";
 import { getSesion } from "@/lib/auth";
-import { RefreshCw, Filter } from "lucide-react";
 
 import { headers } from "next/headers";
 
@@ -40,7 +38,7 @@ export default async function DashboardPage() {
           <div className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-2xl">🌾</span>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+              <h1 className="text-2xl font-bold tracking-tight">Panel de control</h1>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 Trazabilidad operacional de granos — Anta del Dorado S.A.
               </p>
@@ -53,27 +51,8 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Stats */}
-      <StatsGrid trazabilidades={trazabilidades} />
-
-      {/* Trazabilidades */}
-      {trazabilidades.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="rounded-full bg-secondary p-4 mb-4">
-            <Filter className="h-6 w-6 text-muted-foreground" />
-          </div>
-          <h2 className="text-lg font-semibold">Sin trazabilidades activas</h2>
-          <p className="text-sm text-muted-foreground mt-1 max-w-md">
-            No hay trazabilidades en estado ABIERTA. Creá una nueva trazabilidad desde el bot de Telegram para comenzar.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {trazabilidades.map((traz) => (
-            <TrazabilidadCard key={traz.trazabilidad_id} traz={traz} />
-          ))}
-        </div>
-      )}
+      {/* Stats-filtro + buscador + listado */}
+      <TrazabilidadesExplorer trazabilidades={trazabilidades} />
 
       {/* Pipeline legend */}
       <div className="rounded-xl border border-border bg-card p-5">

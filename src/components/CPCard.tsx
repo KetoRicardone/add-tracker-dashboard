@@ -47,7 +47,7 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [], t
   actorNombre?: string;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true); // solapas comprimidas por defecto
   const completedTypes = new Set(evts.map((e) => e.tipo_evento));
   const ocrData = (ocrEvt?.datos || {}) as Record<string, string | number | null>;
   const ocrImageUrl: string | null = (typeof ocrData.url === "string" && ocrData.url) || (typeof ocrData.drive_url === "string" && ocrData.drive_url) || null;
