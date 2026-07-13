@@ -1,26 +1,31 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Paleta de marca — antadeldorado.com.ar
+   verde #66bb6a · verde oscuro #38a935 · verde hoja #689f38
+   teal #20b1aa · verde suave #c8e6c9 · tinta #222 · fondo claro */
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 92%;
-    --card: 222 47% 8%;
-    --card-foreground: 210 40% 92%;
-    --primary: 142 71% 40%;
+    --background: 0 0% 98%;
+    --foreground: 0 0% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 13%;
+    --primary: 118 52% 44%; /* #38a935 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 92%;
-    --muted: 217 33% 12%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 92%;
-    --destructive: 0 84% 60%;
+    --secondary: 120 16% 93%;
+    --secondary-foreground: 0 0% 20%;
+    --muted: 120 12% 95%;
+    --muted-foreground: 0 0% 38%;
+    --accent: 123 38% 90%; /* verde suave #c8e6c9 aprox */
+    --accent-foreground: 88 48% 30%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 142 71% 40%;
+    --border: 120 10% 87%;
+    --input: 120 10% 87%;
+    --ring: 118 52% 44%;
     --radius: 0.5rem;
   }
 }
@@ -33,6 +38,12 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: "Poppins", "Roboto", system-ui, sans-serif;
+  }
 }
 
 /* Custom scrollbar */
@@ -40,17 +51,17 @@
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: hsl(222 47% 8%);
+  background: hsl(120 12% 95%);
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(217 33% 25%);
+  background: hsl(120 10% 78%);
   border-radius: 3px;
 }
 
 /* Animations */
 @keyframes pulse-green {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(56, 169, 53, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(56, 169, 53, 0); }
 }
 .animate-pulse-green {
   animation: pulse-green 2s infinite;
@@ -61,7 +72,7 @@
   100% { background-position: 200% 0; }
 }
 .animate-shimmer {
-  background: linear-gradient(90deg, hsl(217 33% 17%) 25%, hsl(217 33% 22%) 50%, hsl(217 33% 17%) 75%);
+  background: linear-gradient(90deg, hsl(120 12% 93%) 25%, hsl(120 12% 88%) 50%, hsl(120 12% 93%) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }

@@ -36,7 +36,7 @@ const config: Config = {
           foreground: "hsl(var(--card-foreground))",
         },
         success: {
-          DEFAULT: "hsl(142 71% 45%)",
+          DEFAULT: "hsl(118 52% 44%)",
           foreground: "hsl(0 0% 100%)",
         },
         warning: {
@@ -50,7 +50,7 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["Roboto", "Poppins", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
       },
     },

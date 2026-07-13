@@ -43,7 +43,7 @@ export function EventCompactRow({ evt, def, isOK, canEdit = false, actorNombre =
           <span className="text-sm font-medium">{def?.nombre || evt.tipo_evento}</span>
           <span className="text-[10px] text-muted-foreground font-mono bg-secondary/60 rounded px-1.5 py-0.5">{def?.rgan}</span>
           {def?.gate && <span title="Gate de control"><ShieldAlert className="h-3 w-3 text-warning" /></span>}
-          {observaciones && <span title="Tiene observaciones"><MessageSquareText className="h-3 w-3 text-blue-400 flex-shrink-0" /></span>}
+          {observaciones && <span title="Tiene observaciones"><MessageSquareText className="h-3 w-3 text-[#20b1aa] flex-shrink-0" /></span>}
         </div>
         <ResultBadge resultado={evt.resultado} className="hidden sm:inline-flex" />
         <span className="text-[11px] text-muted-foreground hidden md:inline">{formatDate(evt.fecha)}</span>
@@ -52,7 +52,7 @@ export function EventCompactRow({ evt, def, isOK, canEdit = false, actorNombre =
 
       {/* Observaciones — visibles sin expandir */}
       {observaciones && (
-        <div className="ml-9 mr-2 mb-1 rounded-md bg-blue-500/10 border border-blue-500/30 px-3 py-2 text-xs text-blue-200">
+        <div className="ml-9 mr-2 mb-1 rounded-md bg-[#20b1aa]/10 border border-[#20b1aa]/40 px-3 py-2 text-xs text-[#14807b]">
           <span className="font-medium">📝 Observaciones:</span> {observaciones}
         </div>
       )}

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const sesion = getSesion();
   return (
-    <html lang="es" className="dark">
+    <html lang="es">
       <body className="min-h-screen bg-background font-sans antialiased">
         <Sidebar nombre={sesion?.nombre ?? null} isAdmin={esAdmin(sesion)} />
         <div className="flex min-h-screen flex-col md:pl-60">
