@@ -139,6 +139,8 @@ const FIELD_LABELS: Record<string, string> = {
   grano_anterior: "Grano anterior",
   cambio_grano: "Cambio de grano",
   nro: "Precinto",
+  tipo_ingreso: "Tipo de ingreso",
+  peso_total: "Peso total",
 };
 
 /** snake_case → "Texto Legible" (con diccionario por excepciones) */
@@ -165,6 +167,11 @@ export function formatScalar(key: string, value: unknown): string {
     const g = String(value).toUpperCase();
     if (g === "CON") return "Con Glifo";
     if (g === "SIN") return "Sin Glifo";
+  }
+  if (key === "tipo_ingreso") {
+    const t = String(value).toUpperCase();
+    if (t === "GRANEL") return "Granel";
+    if (t === "BB") return "Big Bags";
   }
   const unit = unitForKey(key);
   if (typeof value === "number") return unit ? `${value} ${unit}` : String(value);
