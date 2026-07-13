@@ -134,6 +134,11 @@ const FIELD_LABELS: Record<string, string> = {
   gluten: "Gluten",
   alergeno: "Alérgeno",
   observaciones_finales: "Observaciones finales",
+  // RGAN-41 Ingreso a Proceso
+  codigo_grano: "Grano",
+  grano_anterior: "Grano anterior",
+  cambio_grano: "Cambio de grano",
+  nro: "Precinto",
 };
 
 /** snake_case → "Texto Legible" (con diccionario por excepciones) */

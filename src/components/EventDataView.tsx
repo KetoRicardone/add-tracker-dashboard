@@ -11,6 +11,7 @@ const SKIP_KEYS = new Set([
   "checklist_index",
   "checklist_respuestas_meta",
   "humedad_pct_max", // umbral interno de especificación, no dato operativo
+  "codigo_rgan", // ya se muestra como badge en el encabezado del evento
 ]);
 
 // Valores basura que no deben mostrarse (grano/CP sin cargar dejan "null" string).
