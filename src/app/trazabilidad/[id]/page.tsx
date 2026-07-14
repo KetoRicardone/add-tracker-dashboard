@@ -3,6 +3,7 @@ import { GRAIN_NAMES } from "@/lib/events";
 import { formatDate, cn } from "@/lib/utils";
 import { CPCard } from "@/components/CPCard";
 import { FirmasCard } from "@/components/FirmasCard";
+import { LoginRequired } from "@/components/LoginRequired";
 import { ArrowLeft, Calendar, MapPin, FileText, Layers } from "lucide-react";
 import { headers } from "next/headers";
 import { getSesion } from "@/lib/auth";
@@ -17,7 +18,10 @@ async function getTrazabilidad(id: string): Promise<Trazabilidad | null> {
     const host = h.get("host") || "localhost:3000";
     const proto = h.get("x-forwarded-proto") || "http";
     const baseUrl = `${proto}://${host}`;
-    const res = await fetch(`${baseUrl}/api/trazabilidad/${id}`, { cache: "no-store" });
+    const res = await fetch(`${baseUrl}/api/trazabilidad/${id}`, {
+      cache: "no-store",
+      headers: { cookie: h.get("cookie") || "" }, // la API exige sesión (middleware)
+    });
     if (!res.ok) return null;
     return await res.json();
   } catch { return null; }
@@ -55,6 +59,7 @@ function groupByCPE(eventos: TrazEvento[]): Map<string, TrazEvento[]> {
 
 export default async function TrazabilidadDetailPage({ params }: { params: { id: string } }) {
   const sesion = getSesion();
+  if (!sesion) return <LoginRequired />;
   const traz = await getTrazabilidad(params.id);
   if (!traz) {
     return (

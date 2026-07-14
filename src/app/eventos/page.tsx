@@ -18,6 +18,7 @@ async function getEventos(): Promise<(TrazEvento & { trazabilidad_id: string; co
     const baseUrl = `${proto}://${host}`;
     const res = await fetch(`${baseUrl}/api/eventos?limit=200`, {
       cache: "no-store",
+      headers: { cookie: h.get("cookie") || "" }, // la API exige sesión (middleware)
     });
     if (!res.ok) return [];
     const data = await res.json();

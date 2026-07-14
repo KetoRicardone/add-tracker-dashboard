@@ -16,6 +16,7 @@ async function getTrazabilidades(): Promise<Trazabilidad[]> {
     const baseUrl = `${proto}://${host}`;
     const res = await fetch(`${baseUrl}/api/trazabilidades`, {
       cache: "no-store",
+      headers: { cookie: h.get("cookie") || "" }, // la API exige sesión (middleware)
     });
     if (!res.ok) return [];
     const data = await res.json();

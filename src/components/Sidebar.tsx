@@ -48,8 +48,10 @@ export function Sidebar({ nombre, isAdmin }: { nombre: string | null; isAdmin: b
       activo ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
     );
 
-  // Manuales en PDF — visibles para todos, con o sin sesión.
-  const Manuales = () => (
+  // Manuales en PDF — solo con sesión (los archivos también los protege el middleware).
+  const Manuales = () => {
+    if (!loggedIn) return null;
+    return (
     <div className="mt-4 border-t border-border pt-3">
       <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
         Manuales
@@ -71,7 +73,8 @@ export function Sidebar({ nombre, isAdmin }: { nombre: string | null; isAdmin: b
         <MonitorSmartphone className="h-3.5 w-3.5" /> Manual del panel (PDF)
       </a>
     </div>
-  );
+    );
+  };
 
   const Nav = () => {
     if (!loggedIn) {
