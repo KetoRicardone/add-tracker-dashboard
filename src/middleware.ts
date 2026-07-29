@@ -6,8 +6,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 const COOKIE = "add_sesion";
 
-// Dentro del matcher, estas rutas quedan públicas (login/logout y health check).
-const PUBLIC_PREFIXES = ["/api/auth/", "/api/health"];
+// Dentro del matcher, estas rutas quedan públicas: login/logout, health check y
+// el selector de operadores del propio login (solo id + nombre de quienes
+// tienen PIN activo — sin ese listado no se podría iniciar sesión).
+const PUBLIC_PREFIXES = ["/api/auth/", "/api/health", "/api/usuarios"];
 
 function fromB64url(s: string): Uint8Array<ArrayBuffer> {
   const b64 = s.replace(/-/g, "+").replace(/_/g, "/");
