@@ -168,15 +168,16 @@ export function defForEvent(evt: Pick<TrazEvento, "tipo_evento" | "datos">): Eve
   const codigoRgan = (d.codigo_rgan as string | undefined) || undefined;
 
   // RGAN-39 (Calidad de Ingreso) reusa el tipo EV_CONTROL_CALIDAD_MP de RGAN-38 P2.
-  // Se distingue por codigo_rgan o por la firma de datos del flujo de ingreso
-  // (tolera filas viejas mal etiquetadas como RGAN-38).
+  // La etiqueta explícita del bot manda: desde 2026-07-29 el workflow graba
+  // codigo_rgan según el punto de entrada real. La heurística por firma de datos
+  // queda solo para filas viejas sin etiqueta (el formulario de ingreso también
+  // se usa para la Parte 2, así que kgs_netos por sí solo no implica RGAN-39).
   if (evt.tipo_evento === "EV_CONTROL_CALIDAD_MP") {
-    const esIngreso =
-      codigoRgan === "RGAN-39" ||
-      d.kgs_netos != null ||
-      d.caida_total_kg != null ||
-      d.calidad_grano != null;
-    if (esIngreso) return { ...base, ...RGAN_OVERRIDES["RGAN-39"] };
+    if (codigoRgan === "RGAN-39") return { ...base, ...RGAN_OVERRIDES["RGAN-39"] };
+    if (!codigoRgan) {
+      const esIngreso = d.kgs_netos != null || d.caida_total_kg != null || d.calidad_grano != null;
+      if (esIngreso) return { ...base, ...RGAN_OVERRIDES["RGAN-39"] };
+    }
   }
 
   if (codigoRgan && codigoRgan !== base.rgan && RGAN_OVERRIDES[codigoRgan]) {
