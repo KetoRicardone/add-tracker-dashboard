@@ -13,23 +13,35 @@ export const EVENT_DEFINITIONS: EventDefinition[] = [
   },
   {
     tipo_evento: "EV_CONTROL_CAMION",
-    rgan: "RGAN-38",
+    rgan: "RGAN-38 P1",
     fase: 1,
     nombre: "Control de Camión",
-    descripcion: "RGAN-38 Parte 1 — Recepción: tipo carga, pesos, humedad, zaranda, contaminación",
+    descripcion: "RGAN-38 Parte 1 — Recepción: checklist del camión, glifo",
     icon: "Truck",
     gate: false,
     grupo: "RGAN-38",
   },
   {
     tipo_evento: "EV_CONTROL_CALIDAD_MP",
-    rgan: "RGAN-38",
+    rgan: "RGAN-38 P2",
     fase: 1,
     nombre: "Control de Calidad MP",
     descripcion: "RGAN-38 Parte 2 — Medición por grano, cálculo de caída total, asignación de galpón",
     icon: "FlaskConical",
     gate: false,
     grupo: "RGAN-38",
+  },
+  {
+    // Comparte tipo_evento con RGAN-38 P2: son pasos distintos del circuito y se
+    // distinguen por datos_evento.codigo_rgan (ver stepKeyForEvent).
+    key: "EV_CONTROL_CALIDAD_MP:RGAN-39",
+    tipo_evento: "EV_CONTROL_CALIDAD_MP",
+    rgan: "RGAN-39",
+    fase: 1,
+    nombre: "Calidad de Ingreso",
+    descripcion: "Control de calidad de ingreso por grano: kgs netos, humedad, defectos, destino",
+    icon: "FlaskConical",
+    gate: false,
   },
   {
     tipo_evento: "EV_INGRESO_MP_DETALLE",
@@ -153,17 +165,21 @@ export const EVENT_DEFINITIONS: EventDefinition[] = [
   },
 ];
 
-// Algunos tipo_evento se reutilizan entre RGANs. Ej.: EV_CONTROL_CALIDAD_MP lo
-// emiten tanto RGAN-38 Parte 2 como RGAN-39 (Calidad de Ingreso). Se desambigua
-// por datos_evento.codigo_rgan.
-const RGAN_OVERRIDES: Record<string, Partial<EventDefinition>> = {
-  "RGAN-39": { rgan: "RGAN-39", nombre: "Calidad de Ingreso", icon: "FlaskConical", grupo: undefined },
-};
+const KEY_RGAN39 = "EV_CONTROL_CALIDAD_MP:RGAN-39";
+
+/** Identidad del paso que cubre una definición. */
+export function stepKey(def: EventDefinition): string {
+  return def.key || def.tipo_evento;
+}
+
+/** Identidad del paso que un evento registrado completa. */
+export function stepKeyForEvent(evt: Pick<TrazEvento, "tipo_evento" | "datos">): string {
+  const def = defForEvent(evt);
+  return def ? stepKey(def) : evt.tipo_evento;
+}
 
 /** Definición de presentación para un evento, considerando codigo_rgan. */
 export function defForEvent(evt: Pick<TrazEvento, "tipo_evento" | "datos">): EventDefinition | undefined {
-  const base = EVENT_DEFINITIONS.find((d) => d.tipo_evento === evt.tipo_evento);
-  if (!base) return base;
   const d = evt.datos || {};
   const codigoRgan = (d.codigo_rgan as string | undefined) || undefined;
 
@@ -173,17 +189,13 @@ export function defForEvent(evt: Pick<TrazEvento, "tipo_evento" | "datos">): Eve
   // queda solo para filas viejas sin etiqueta (el formulario de ingreso también
   // se usa para la Parte 2, así que kgs_netos por sí solo no implica RGAN-39).
   if (evt.tipo_evento === "EV_CONTROL_CALIDAD_MP") {
-    if (codigoRgan === "RGAN-39") return { ...base, ...RGAN_OVERRIDES["RGAN-39"] };
-    if (!codigoRgan) {
-      const esIngreso = d.kgs_netos != null || d.caida_total_kg != null || d.calidad_grano != null;
-      if (esIngreso) return { ...base, ...RGAN_OVERRIDES["RGAN-39"] };
-    }
+    const esIngreso =
+      codigoRgan === "RGAN-39" ||
+      (!codigoRgan && (d.kgs_netos != null || d.caida_total_kg != null || d.calidad_grano != null));
+    if (esIngreso) return EVENT_DEFINITIONS.find((x) => x.key === KEY_RGAN39);
   }
 
-  if (codigoRgan && codigoRgan !== base.rgan && RGAN_OVERRIDES[codigoRgan]) {
-    return { ...base, ...RGAN_OVERRIDES[codigoRgan] };
-  }
-  return base;
+  return EVENT_DEFINITIONS.find((x) => x.tipo_evento === evt.tipo_evento && !x.key);
 }
 
 export const GRAIN_NAMES: Record<string, string> = {

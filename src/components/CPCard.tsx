@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { TrazEvento, Firma } from "@/lib/types";
-import { EVENT_DEFINITIONS, defForEvent } from "@/lib/events";
+import { EVENT_DEFINITIONS, defForEvent, stepKey, stepKeyForEvent } from "@/lib/events";
 import { formatDate, cn } from "@/lib/utils";
 import { emojiForIcon } from "@/lib/eventMeta";
 import { DataBadge } from "./DataBadge";
@@ -48,7 +48,8 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [], t
 }) {
   const [expanded, setExpanded] = useState(false);
   const [collapsed, setCollapsed] = useState(true); // solapas comprimidas por defecto
-  const completedTypes = new Set(evts.map((e) => e.tipo_evento));
+  // Por paso del circuito, no por tipo_evento: RGAN-38 P2 y RGAN-39 comparten tipo.
+  const completedTypes = new Set(evts.map(stepKeyForEvent));
   const ocrData = (ocrEvt?.datos || {}) as Record<string, string | number | null>;
   const ocrImageUrl: string | null = (typeof ocrData.url === "string" && ocrData.url) || (typeof ocrData.drive_url === "string" && ocrData.drive_url) || null;
 
@@ -74,7 +75,7 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [], t
             <div className="flex gap-0.5 h-2">
               {[1, 2, 3, 4].map((fase) => {
                 const faseDefs = EVENT_DEFINITIONS.filter((d) => d.fase === fase);
-                const faseDone = faseDefs.filter((d) => completedTypes.has(d.tipo_evento)).length;
+                const faseDone = faseDefs.filter((d) => completedTypes.has(stepKey(d))).length;
                 const pct = Math.round((faseDone / faseDefs.length) * 100);
                 return <div key={fase} className="w-5 h-full bg-secondary rounded-full overflow-hidden" title={`F${fase}: ${faseDone}/${faseDefs.length}`}>
                   <div className={cn("h-full rounded-full", pct === 100 ? "bg-success" : pct > 0 ? "bg-primary" : "")} style={{ width: `${pct}%` }} />
@@ -189,8 +190,8 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [], t
         })}
 
         {/* Pending */}
-        {EVENT_DEFINITIONS.filter((d) => d.tipo_evento !== "EV_OCR_CARTA_PORTE" && !completedTypes.has(d.tipo_evento)).map((def) => (
-          <div key={def.tipo_evento} className="flex items-center gap-3 p-2.5 rounded-lg border border-dashed border-border/40 opacity-40">
+        {EVENT_DEFINITIONS.filter((d) => d.tipo_evento !== "EV_OCR_CARTA_PORTE" && !completedTypes.has(stepKey(d))).map((def) => (
+          <div key={stepKey(def)} className="flex items-center gap-3 p-2.5 rounded-lg border border-dashed border-border/40 opacity-40">
             <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <span className="text-sm text-muted-foreground">{def.nombre}</span>
             <span className="text-xs text-muted-foreground font-mono">{def.rgan}</span>

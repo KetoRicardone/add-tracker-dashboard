@@ -1,5 +1,5 @@
 import { Trazabilidad, TrazEvento } from "@/lib/types";
-import { GRAIN_NAMES } from "@/lib/events";
+import { EVENT_DEFINITIONS, GRAIN_NAMES, stepKeyForEvent } from "@/lib/events";
 import { formatDate, cn } from "@/lib/utils";
 import { CPCard } from "@/components/CPCard";
 import { FirmasCard } from "@/components/FirmasCard";
@@ -71,7 +71,7 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
   }
 
   const cpGroups = groupByCPE(traz.eventos);
-  const totalDefs = 16;
+  const totalDefs = EVENT_DEFINITIONS.length;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -113,7 +113,7 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
       ) : (
         Array.from(cpGroups.entries()).map(([cpe, evts]) => {
           const ocrEvt = evts.find((e) => e.tipo_evento === "EV_OCR_CARTA_PORTE");
-          const doneCount = new Set(evts.map((e) => e.tipo_evento)).size;
+          const doneCount = new Set(evts.map(stepKeyForEvent)).size;
           return <CPCard key={cpe} cpe={cpe} evts={evts} ocrEvt={ocrEvt} doneCount={doneCount} totalDefs={totalDefs} firmas={traz.firmas || []} trazabilidadId={traz.trazabilidad_id} canEdit={!!sesion} actorNombre={sesion?.nombre || ""} />;
         })
       )}

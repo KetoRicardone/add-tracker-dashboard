@@ -35,6 +35,9 @@ export interface TrazEvento {
 }
 
 export interface EventDefinition {
+  /** Identidad del paso en el circuito. Por defecto es `tipo_evento`; se declara
+   *  aparte cuando dos pasos comparten tipo_evento (RGAN-38 P2 vs RGAN-39). */
+  key?: string;
   tipo_evento: string;
   rgan: string;
   fase: number;
