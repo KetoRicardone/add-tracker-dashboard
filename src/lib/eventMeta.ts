@@ -35,6 +35,9 @@ export const RGAN_EMOJI: Record<string, string> = {
 /** Etiqueta amigable para evento_tipo de firmas (auditoria_firmas.evento_tipo) */
 export const FIRMA_EVENTO_LABEL: Record<string, string> = {
   RGAN38_COMPLETO: "RGAN-38 — Recepción + Calidad MP",
+  EV_CONTROL_CALIDAD_MP: "RGAN-39 — Calidad de Ingreso",
+  EV_INGRESO_MP_DETALLE: "RGAN-55 — Ingreso de MP",
+  EV_CONTROL_PROCESO: "RGAN-53 — Control de Proceso",
 };
 
 export function firmaEventoLabel(tipo?: string | null): string {
@@ -64,6 +67,7 @@ const FIELD_LABELS: Record<string, string> = {
   boquillas_limpias: "Boquillas limpias",
   sin_residuos_quimicos: "Sin residuos químicos",
   checklist_respuestas: "Checklist",
+  checklist_observaciones: "Motivos de los NO",
   respuestas_contaminacion: "Contaminación",
   glifo: "Glifo",
   cp_seleccionada: "Carta de Porte",

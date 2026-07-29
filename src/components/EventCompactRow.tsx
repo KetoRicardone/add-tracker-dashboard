@@ -7,7 +7,7 @@ import { emojiForIcon } from "@/lib/eventMeta";
 import { ResultBadge } from "./ResultBadge";
 import { EventDataView } from "./EventDataView";
 import { EventActions } from "./EventActions";
-import { CheckCircle2, ChevronDown, MessageSquareText, ShieldAlert } from "lucide-react";
+import { CheckCircle2, ChevronDown, MessageSquareText, PenLine, ShieldAlert } from "lucide-react";
 
 /** Extrae observaciones de datos_evento — puede ser string o array */
 function getObservaciones(datos: Record<string, unknown>): string | null {
@@ -20,12 +20,14 @@ function getObservaciones(datos: Record<string, unknown>): string | null {
   return null;
 }
 
-export function EventCompactRow({ evt, def, isOK, canEdit = false, actorNombre = "" }: {
+export function EventCompactRow({ evt, def, isOK, canEdit = false, actorNombre = "", firmante }: {
   evt: TrazEvento;
   def?: { nombre: string; rgan: string; icon: string; gate: boolean };
   isOK: boolean;
   canEdit?: boolean;
   actorNombre?: string;
+  /** Firmante del documento que cierra este evento, si está firmado. */
+  firmante?: string;
 }) {
   const [open, setOpen] = useState(false);
   const datos = evt.datos || {};
@@ -64,6 +66,11 @@ export function EventCompactRow({ evt, def, isOK, canEdit = false, actorNombre =
             <span>👤 {evt.responsable || "—"}</span>
             <span>🕑 {formatDate(evt.fecha)}</span>
             <ResultBadge resultado={evt.resultado} />
+            {firmante && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 font-medium text-primary">
+                <PenLine className="h-3 w-3" />Firmado por {firmante}
+              </span>
+            )}
           </div>
           <EventDataView datos={datos} />
           <details className="text-[11px]">

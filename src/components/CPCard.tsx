@@ -174,18 +174,21 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [], t
                   {group.evts.map((evt) => {
                     const def = defForEvent(evt);
                     const isOK = evt.resultado === "OK" || evt.resultado === "APROBADO";
-                    return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} canEdit={canEdit} actorNombre={actorNombre} />;
+                    return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} canEdit={canEdit} actorNombre={actorNombre} firmante={firma?.firmante} />;
                   })}
                 </div>
               </div>
             );
           }
 
-          // Evento sin grupo — se renderiza individualmente
+          // Evento sin grupo — se renderiza individualmente. Su firma (si existe)
+          // se registra con evento_tipo = tipo_evento; las de los grupos usan un
+          // tipo propio (RGAN38_COMPLETO) y se muestran en el encabezado.
           return group.evts.map((evt) => {
             const def = defForEvent(evt);
             const isOK = evt.resultado === "OK" || evt.resultado === "APROBADO";
-            return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} canEdit={canEdit} actorNombre={actorNombre} />;
+            const firma = firmas.find((f) => f.evento_tipo === evt.tipo_evento);
+            return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} canEdit={canEdit} actorNombre={actorNombre} firmante={firma?.firmante} />;
           });
         })}
 
