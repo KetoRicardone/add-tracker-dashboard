@@ -1,7 +1,9 @@
 import { Trazabilidad } from "@/lib/types";
 import { TrazabilidadesExplorer } from "@/components/TrazabilidadesExplorer";
 import { LoginRequired } from "@/components/LoginRequired";
+import { SinPermiso } from "@/components/SinPermiso";
 import { getSesion } from "@/lib/auth";
+import { puede } from "@/lib/permisos";
 
 import { headers } from "next/headers";
 
@@ -28,6 +30,9 @@ async function getTrazabilidades(): Promise<Trazabilidad[]> {
 
 export default async function DashboardPage() {
   if (!getSesion()) return <LoginRequired />;
+  if (!(await puede("PANEL_TRAZABILIDAD"))) {
+    return <SinPermiso permiso="PANEL_TRAZABILIDAD" detalle="Tu rol no puede ver las trazabilidades." />;
+  }
 
   const trazabilidades = await getTrazabilidades();
 

@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { getSesion, esAdmin } from "@/lib/auth";
+import { guardPermiso } from "@/lib/permisos";
 
 export const dynamic = "force-dynamic";
 
 // Resetea el PIN: borra el hash y obliga a recrearlo desde el bot.
 // No setea un PIN nuevo (el admin nunca conoce el PIN del usuario).
 export async function POST(_req: NextRequest, { params }: { params: { id: string } }) {
-  const s = getSesion();
-  if (!s) return NextResponse.json({ ok: false, error: "No autenticado" }, { status: 401 });
-  if (!esAdmin(s)) return NextResponse.json({ ok: false, error: "Requiere rol ADMIN" }, { status: 403 });
+  const err = await guardPermiso("PANEL_USUARIOS");
+  if (err) return err;
 
   try {
     await query(

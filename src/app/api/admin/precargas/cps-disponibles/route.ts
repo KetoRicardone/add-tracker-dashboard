@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getSesion } from "@/lib/auth";
+import { guardPermiso } from "@/lib/permisos";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,8 @@ export interface CpDisponible {
 export async function GET() {
   const sesion = getSesion();
   if (!sesion) return NextResponse.json({ ok: false, error: "No autenticado" }, { status: 401 });
+  const sinPermiso = await guardPermiso("PANEL_PRECINTOS");
+  if (sinPermiso) return sinPermiso;
 
   try {
     const cps = await query<CpDisponible>(

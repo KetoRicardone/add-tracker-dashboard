@@ -21,22 +21,27 @@ import {
 import { LoginControl } from "./LoginControl";
 import { cn } from "@/lib/utils";
 
+// Cada entrada declara el permiso de ámbito PANEL que la habilita (F0_018).
 const adminChildren = [
-  { tab: "usuarios", label: "Usuarios", icon: Users },
-  { tab: "permisos", label: "Roles", icon: ShieldCheck },
-  { tab: "precintos", label: "Precintos", icon: PackageSearch },
-  { tab: "establecimientos", label: "Establecimientos", icon: Building2 },
-  { tab: "granos", label: "Granos", icon: Wheat },
+  { tab: "usuarios", label: "Usuarios", icon: Users, permiso: "PANEL_USUARIOS" },
+  { tab: "permisos", label: "Roles", icon: ShieldCheck, permiso: "PANEL_ROLES" },
+  { tab: "precintos", label: "Precintos", icon: PackageSearch, permiso: "PANEL_PRECINTOS" },
+  { tab: "establecimientos", label: "Establecimientos", icon: Building2, permiso: "PANEL_ESTABLECIMIENTOS" },
+  { tab: "granos", label: "Granos", icon: Wheat, permiso: "PANEL_GRANOS" },
 ];
 
-export function Sidebar({ nombre, isAdmin }: { nombre: string | null; isAdmin: boolean }) {
+export function Sidebar({ nombre, permisos }: { nombre: string | null; permisos: string[] }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false); // drawer mobile
   const onAdmin = pathname.startsWith("/admin");
   const [adminOpen, setAdminOpen] = useState(onAdmin);
-  const currentTab = searchParams.get("tab") || "usuarios";
   const loggedIn = !!nombre; // sin sesión no se muestran los accesos
+
+  const puede = (p: string) => permisos.includes(p);
+  const hijosVisibles = adminChildren.filter((c) => puede(c.permiso));
+  const verAdmin = puede("PANEL_ADMIN") && hijosVisibles.length > 0;
+  const currentTab = searchParams.get("tab") || hijosVisibles[0]?.tab || "usuarios";
 
   const Logo = () => (
     <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2 text-lg font-semibold tracking-tight">
@@ -90,14 +95,18 @@ export function Sidebar({ nombre, isAdmin }: { nombre: string | null; isAdmin: b
     }
     return (
     <nav className="flex flex-col gap-1">
-      <Link href="/" onClick={() => setOpen(false)} className={linkClass(pathname === "/")}>
-        <LayoutDashboard className="h-4 w-4" /> Panel de control
-      </Link>
-      <Link href="/eventos" onClick={() => setOpen(false)} className={linkClass(pathname.startsWith("/eventos"))}>
-        <ListChecks className="h-4 w-4" /> Eventos
-      </Link>
+      {puede("PANEL_TRAZABILIDAD") && (
+        <Link href="/" onClick={() => setOpen(false)} className={linkClass(pathname === "/")}>
+          <LayoutDashboard className="h-4 w-4" /> Panel de control
+        </Link>
+      )}
+      {puede("PANEL_EVENTOS") && (
+        <Link href="/eventos" onClick={() => setOpen(false)} className={linkClass(pathname.startsWith("/eventos"))}>
+          <ListChecks className="h-4 w-4" /> Eventos
+        </Link>
+      )}
 
-      {isAdmin && (
+      {verAdmin && (
         <div>
           <button onClick={() => setAdminOpen((v) => !v)} className={cn(linkClass(onAdmin), "w-full justify-between")}>
             <span className="flex items-center gap-3">
@@ -107,7 +116,7 @@ export function Sidebar({ nombre, isAdmin }: { nombre: string | null; isAdmin: b
           </button>
           {adminOpen && (
             <div className="ml-4 mt-1 flex flex-col gap-1 border-l border-border pl-2">
-              {adminChildren.map((c) => {
+              {hijosVisibles.map((c) => {
                 const Icon = c.icon;
                 const activo = onAdmin && currentTab === c.tab;
                 return (

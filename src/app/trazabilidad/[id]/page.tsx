@@ -4,6 +4,8 @@ import { formatDate, cn } from "@/lib/utils";
 import { CPCard } from "@/components/CPCard";
 import { FirmasCard } from "@/components/FirmasCard";
 import { LoginRequired } from "@/components/LoginRequired";
+import { SinPermiso } from "@/components/SinPermiso";
+import { puede } from "@/lib/permisos";
 import { ArrowLeft, Calendar, MapPin, FileText, Layers } from "lucide-react";
 import { headers } from "next/headers";
 import { getSesion } from "@/lib/auth";
@@ -60,6 +62,9 @@ function groupByCPE(eventos: TrazEvento[]): Map<string, TrazEvento[]> {
 export default async function TrazabilidadDetailPage({ params }: { params: { id: string } }) {
   const sesion = getSesion();
   if (!sesion) return <LoginRequired />;
+  if (!(await puede("PANEL_TRAZABILIDAD"))) {
+    return <SinPermiso permiso="PANEL_TRAZABILIDAD" detalle="Tu rol no puede ver las trazabilidades." />;
+  }
   const traz = await getTrazabilidad(params.id);
   if (!traz) {
     return (

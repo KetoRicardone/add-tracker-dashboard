@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import { query, vigenteFilter } from "@/lib/db";
 import { Trazabilidad } from "@/lib/types";
 import { EVENT_DEFINITIONS } from "@/lib/events";
+import { guardPermiso } from "@/lib/permisos";
 
 // Evita que Next cachee la respuesta en build: siempre consulta la BD en vivo.
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
+  const err = await guardPermiso("PANEL_TRAZABILIDAD");
+  if (err) return err;
   try {
     const vig = await vigenteFilter("e");
     const rows = await query<{

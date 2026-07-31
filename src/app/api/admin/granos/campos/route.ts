@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { getSesion, esAdmin } from "@/lib/auth";
+import { guardPermiso } from "@/lib/permisos";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -9,15 +9,10 @@ export const revalidate = 0;
 // que el bot hace en RGAN-39 y qué defectos suman a la caída total. Agregar un
 // grano nuevo sin cargarle campos deja el formulario vacío.
 
-function guard() {
-  const s = getSesion();
-  if (!s) return NextResponse.json({ ok: false, error: "No autenticado" }, { status: 401 });
-  if (!esAdmin(s)) return NextResponse.json({ ok: false, error: "Requiere rol ADMIN" }, { status: 403 });
-  return null;
-}
+const guard = () => guardPermiso("PANEL_GRANOS");
 
 export async function POST(req: NextRequest) {
-  const err = guard();
+  const err = await guard();
   if (err) return err;
   let body: { codigo_grano?: string; campo_key?: string; etiqueta?: string; suma_caida?: boolean; orden?: number };
   try {
@@ -71,7 +66,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const err = guard();
+  const err = await guard();
   if (err) return err;
   let body: { codigo_grano?: string; campo_key?: string; etiqueta?: string; suma_caida?: boolean; orden?: number };
   try {
@@ -115,7 +110,7 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const err = guard();
+  const err = await guard();
   if (err) return err;
   const { searchParams } = new URL(req.url);
   const grano = (searchParams.get("grano") || "").trim().toUpperCase();

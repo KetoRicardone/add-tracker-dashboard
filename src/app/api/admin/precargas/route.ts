@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getSesion } from "@/lib/auth";
+import { guardPermiso } from "@/lib/permisos";
 import type { Precarga, PrecargaItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +9,8 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const sesion = getSesion();
   if (!sesion) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  const sinPermiso = await guardPermiso("PANEL_PRECINTOS");
+  if (sinPermiso) return sinPermiso;
 
   try {
     let precargas: Precarga[] = [];

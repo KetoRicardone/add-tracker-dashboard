@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { getSesion, esAdmin } from "@/lib/auth";
+import { guardPermiso } from "@/lib/permisos";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -10,12 +10,7 @@ export const revalidate = 0;
 
 const TIPOS = ["Propio", "Proveedor", "Cliente"];
 
-function guard() {
-  const s = getSesion();
-  if (!s) return NextResponse.json({ ok: false, error: "No autenticado" }, { status: 401 });
-  if (!esAdmin(s)) return NextResponse.json({ ok: false, error: "Requiere rol ADMIN" }, { status: 403 });
-  return null;
-}
+const guard = () => guardPermiso("PANEL_ESTABLECIMIENTOS");
 
 function validar(codigo: string, nombre: string, tipo: string) {
   if (!codigo || !nombre) return "El código y el nombre son obligatorios";
@@ -25,7 +20,7 @@ function validar(codigo: string, nombre: string, tipo: string) {
 }
 
 export async function GET() {
-  const err = guard();
+  const err = await guard();
   if (err) return err;
   try {
     const establecimientos = await query(
@@ -44,7 +39,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const err = guard();
+  const err = await guard();
   if (err) return err;
   let body: { codigo?: string; nombre?: string; tipo?: string; observaciones?: string };
   try {
@@ -77,7 +72,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const err = guard();
+  const err = await guard();
   if (err) return err;
   let body: { codigo?: string; nombre?: string; tipo?: string; observaciones?: string; vigente?: boolean };
   try {

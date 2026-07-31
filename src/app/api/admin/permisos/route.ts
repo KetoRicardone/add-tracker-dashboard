@@ -1,19 +1,20 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { getSesion, esAdmin } from "@/lib/auth";
+import { guardPermiso } from "@/lib/permisos";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 // Devuelve la matriz rol × permiso para el panel de administración.
 export async function GET() {
-  const s = getSesion();
-  if (!s) return NextResponse.json({ ok: false, error: "No autenticado" }, { status: 401 });
-  if (!esAdmin(s)) return NextResponse.json({ ok: false, error: "Requiere rol ADMIN" }, { status: 403 });
+  const err = await guardPermiso("PANEL_ROLES");
+  if (err) return err;
 
   try {
-    const permisos = await query<{ clave: string; descripcion: string | null }>(
-      `SELECT clave, descripcion FROM permisos ORDER BY clave`
+    // `ambito` (F0_018) separa los permisos del bot de los del panel.
+    const permisos = await query<{ clave: string; descripcion: string | null; ambito: string }>(
+      `SELECT clave, descripcion, COALESCE(ambito, 'BOT') AS ambito
+         FROM permisos ORDER BY COALESCE(ambito,'BOT') DESC, COALESCE(orden, 0), clave`
     );
     const roles = await query<{ rol: string }>(`SELECT unnest(enum_range(NULL::rol_usuario))::text AS rol`);
     const rolPermisos = await query<{ rol: string; permiso_clave: string }>(

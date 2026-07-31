@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withTransaction } from "@/lib/db";
 import { getSesion } from "@/lib/auth";
+import { guardPermiso } from "@/lib/permisos";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,8 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const sesion = getSesion();
   if (!sesion) return NextResponse.json({ ok: false, error: "No autenticado" }, { status: 401 });
+  const sinPermiso = await guardPermiso("PANEL_ANULAR");
+  if (sinPermiso) return sinPermiso;
 
   let motivo = "";
   try {

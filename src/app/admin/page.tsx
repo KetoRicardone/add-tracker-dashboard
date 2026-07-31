@@ -1,4 +1,5 @@
-import { getSesion, esAdmin } from "@/lib/auth";
+import { getSesion } from "@/lib/auth";
+import { permisosPanel } from "@/lib/permisos";
 import { query } from "@/lib/db";
 import { AdminPanel, AdminData } from "@/components/admin/AdminPanel";
 import { Usuario } from "@/components/admin/UsuariosTab";
@@ -11,7 +12,29 @@ import { ShieldAlert, Settings2 } from "lucide-react";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-async function loadData(): Promise<AdminData> {
+// Solo se consulta lo que el rol puede ver: sin el permiso, la pestaña ni se
+// ofrece y los datos nunca salen de la base.
+async function loadData(permisos: Set<string>): Promise<AdminData> {
+  const vacio: AdminData = {
+    usuarios: [], roles: [], permisos: [], rolPermisos: [], menuPorPermiso: {},
+    precargas: [], establecimientos: [], granos: [], campos: [], permisosPanel: Array.from(permisos),
+  };
+
+  if (permisos.has("PANEL_USUARIOS")) Object.assign(vacio, await loadUsuarios());
+  if (permisos.has("PANEL_ROLES")) Object.assign(vacio, await loadRoles());
+  if (permisos.has("PANEL_PRECINTOS")) Object.assign(vacio, await loadPrecargas());
+  if (permisos.has("PANEL_ESTABLECIMIENTOS")) Object.assign(vacio, await loadEstablecimientos());
+  if (permisos.has("PANEL_GRANOS")) Object.assign(vacio, await loadGranos());
+
+  // UsuariosTab necesita la lista de roles aunque no se administre la matriz.
+  if (!vacio.roles.length && permisos.has("PANEL_USUARIOS")) {
+    vacio.roles = (await query<{ rol: string }>(`SELECT unnest(enum_range(NULL::rol_usuario))::text AS rol`))
+      .map((r) => r.rol);
+  }
+  return vacio;
+}
+
+async function loadUsuarios() {
   const usuarios = await query<Usuario>(
     `SELECT usuario_id, nombre, telegram_id::text AS telegram_id, rol::text AS rol,
             COALESCE(activo, true) AS activo,
@@ -23,18 +46,41 @@ async function loadData(): Promise<AdminData> {
      FROM usuarios
      ORDER BY nombre`
   );
+  return { usuarios };
+}
+
+async function loadRoles() {
   const rolesRows = await query<{ rol: string }>(`SELECT unnest(enum_range(NULL::rol_usuario))::text AS rol`);
   const roles = rolesRows.map((r) => r.rol);
 
   let permisos: Permiso[] = [];
   let rolPermisos: RolPermiso[] = [];
+  let menuPorPermiso: Record<string, string> = {};
   try {
-    permisos = await query<Permiso>(`SELECT clave, descripcion FROM permisos ORDER BY clave`);
+    // `ambito` (F0_018) separa los permisos del bot de los del panel.
+    permisos = await query<Permiso>(
+      `SELECT clave, descripcion, COALESCE(ambito, 'BOT') AS ambito
+         FROM permisos ORDER BY COALESCE(ambito,'BOT') DESC, COALESCE(orden, 0), clave`
+    );
     rolPermisos = await query<RolPermiso>(`SELECT rol::text AS rol, permiso_clave FROM rol_permisos`);
   } catch {
     // F0_009 no aplicada todavia → la matriz muestra el aviso.
   }
+  try {
+    // Qué botones del bot apaga cada permiso, para que la matriz se entienda sola.
+    const filas = await query<{ permiso_requerido: string; items: string }>(
+      `SELECT permiso_requerido, string_agg(label, ' · ' ORDER BY orden) AS items
+         FROM menu_items WHERE activo AND permiso_requerido IS NOT NULL
+        GROUP BY permiso_requerido`
+    );
+    menuPorPermiso = Object.fromEntries(filas.map((f) => [f.permiso_requerido, f.items]));
+  } catch {
+    /* menu_items opcional */
+  }
+  return { roles, permisos, rolPermisos, menuPorPermiso };
+}
 
+async function loadPrecargas() {
   let precargas: Precarga[] = [];
   try {
     const rows = await query<Precarga & { items_json: string }>(
@@ -59,11 +105,12 @@ async function loadData(): Promise<AdminData> {
   } catch {
     // F0_010 no aplicada todavia.
   }
+  return { precargas };
+}
 
-  // Maestros: establecimientos (F0_017) y granos + campos de calidad (F0_016).
+// Maestro de establecimientos (F0_017).
+async function loadEstablecimientos() {
   let establecimientos: Establecimiento[] = [];
-  let granos: Grano[] = [];
-  let campos: CampoCalidad[] = [];
   try {
     establecimientos = await query<Establecimiento>(
       `SELECT e.codigo, e.nombre, e.tipo, e.observaciones,
@@ -74,6 +121,13 @@ async function loadData(): Promise<AdminData> {
   } catch {
     // F0_017 no aplicada todavía.
   }
+  return { establecimientos };
+}
+
+// Maestro de granos + campos de calidad de RGAN-39 (F0_016).
+async function loadGranos() {
+  let granos: Grano[] = [];
+  let campos: CampoCalidad[] = [];
   try {
     granos = await query<Grano>(
       `SELECT g.codigo, g.nombre, g.vida_util_meses, g.observaciones,
@@ -89,8 +143,7 @@ async function loadData(): Promise<AdminData> {
   } catch {
     // F0_016 no aplicada todavía.
   }
-
-  return { usuarios, roles, permisos, rolPermisos, precargas, establecimientos, granos, campos };
+  return { granos, campos };
 }
 
 export default async function AdminPage() {
@@ -101,13 +154,17 @@ export default async function AdminPage() {
       <Aviso titulo="Iniciá sesión" detalle="Necesitás iniciar sesión (arriba a la derecha) con un usuario administrador para gestionar usuarios y permisos." />
     );
   }
-  if (!esAdmin(sesion)) {
+  const permisos = await permisosPanel(sesion);
+  if (!permisos.has("PANEL_ADMIN")) {
     return (
-      <Aviso titulo="Acceso restringido" detalle={`Tu rol (${sesion.rol || "—"}) no tiene acceso a la administración. Requiere ADMIN o SISTEMAS.`} />
+      <Aviso
+        titulo="Acceso restringido"
+        detalle={`Tu rol (${sesion.rol || "—"}) no tiene el permiso PANEL_ADMIN. Un administrador puede activarlo en Administración → Roles.`}
+      />
     );
   }
 
-  const data = await loadData();
+  const data = await loadData(permisos);
 
   return (
     <div className="space-y-6">

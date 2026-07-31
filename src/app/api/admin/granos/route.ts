@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { getSesion, esAdmin } from "@/lib/auth";
+import { guardPermiso } from "@/lib/permisos";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -8,12 +8,7 @@ export const revalidate = 0;
 // Maestro de granos (F0_016). El bot lo usa para reconocer el grano de la CP y,
 // junto con granos_campos_calidad, para armar el formulario de RGAN-39.
 
-function guard() {
-  const s = getSesion();
-  if (!s) return NextResponse.json({ ok: false, error: "No autenticado" }, { status: 401 });
-  if (!esAdmin(s)) return NextResponse.json({ ok: false, error: "Requiere rol ADMIN" }, { status: 403 });
-  return null;
-}
+const guard = () => guardPermiso("PANEL_GRANOS");
 
 function validar(codigo: string, nombre: string) {
   if (!codigo || !nombre) return "El código y el nombre son obligatorios";
@@ -22,7 +17,7 @@ function validar(codigo: string, nombre: string) {
 }
 
 export async function GET() {
-  const err = guard();
+  const err = await guard();
   if (err) return err;
   try {
     const granos = await query(
@@ -46,7 +41,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const err = guard();
+  const err = await guard();
   if (err) return err;
   let body: { codigo?: string; nombre?: string; vida_util_meses?: number | string; observaciones?: string };
   try {
@@ -83,7 +78,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const err = guard();
+  const err = await guard();
   if (err) return err;
   let body: {
     codigo?: string; nombre?: string; vida_util_meses?: number | string;

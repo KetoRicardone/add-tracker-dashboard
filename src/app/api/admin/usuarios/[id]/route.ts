@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { getSesion, esAdmin } from "@/lib/auth";
+import { getSesion } from "@/lib/auth";
+import { guardPermiso } from "@/lib/permisos";
 
 export const dynamic = "force-dynamic";
 
-function guard() {
-  const s = getSesion();
-  if (!s) return { err: NextResponse.json({ ok: false, error: "No autenticado" }, { status: 401 }), s: null };
-  if (!esAdmin(s)) return { err: NextResponse.json({ ok: false, error: "Requiere rol ADMIN" }, { status: 403 }), s: null };
-  return { err: null, s };
+async function guard() {
+  const err = await guardPermiso("PANEL_USUARIOS");
+  return { err, s: err ? null : getSesion() };
 }
 
 // Edita rol / activo / bloqueado / pin_bloqueado de un usuario.
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const { err, s } = guard();
+  const { err, s } = await guard();
   if (err) return err;
 
   let body: { rol?: string; activo?: boolean; bloqueado?: boolean; pin_bloqueado?: boolean };

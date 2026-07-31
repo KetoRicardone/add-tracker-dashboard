@@ -5,7 +5,9 @@ import { Calendar, Filter, ArrowRight } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { LoginRequired } from "@/components/LoginRequired";
+import { SinPermiso } from "@/components/SinPermiso";
 import { getSesion } from "@/lib/auth";
+import { puede } from "@/lib/permisos";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -30,6 +32,9 @@ async function getEventos(): Promise<(TrazEvento & { trazabilidad_id: string; co
 
 export default async function EventosPage() {
   if (!getSesion()) return <LoginRequired />;
+  if (!(await puede("PANEL_EVENTOS"))) {
+    return <SinPermiso permiso="PANEL_EVENTOS" detalle="Tu rol no puede ver el historial de eventos." />;
+  }
 
   const eventos = await getEventos();
   const hoy = new Date().toISOString().split("T")[0];

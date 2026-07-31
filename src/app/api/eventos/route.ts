@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { query, vigenteFilter } from "@/lib/db";
+import { guardPermiso } from "@/lib/permisos";
 
 // Evita que Next cachee la respuesta en build: siempre consulta la BD en vivo.
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
+  const err = await guardPermiso("PANEL_EVENTOS");
+  if (err) return err;
   try {
     const vig = await vigenteFilter("e");
     const eventos = await query<{

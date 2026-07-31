@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query, vigenteFilter } from "@/lib/db";
+import { guardPermiso } from "@/lib/permisos";
 
 // Evita que Next cachee la respuesta en build: siempre consulta la BD en vivo.
 export const dynamic = "force-dynamic";
@@ -9,6 +10,8 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const err = await guardPermiso("PANEL_TRAZABILIDAD");
+  if (err) return err;
   try {
     const { id } = params;
 

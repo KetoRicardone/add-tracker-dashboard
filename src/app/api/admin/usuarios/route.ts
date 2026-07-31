@@ -1,20 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { getSesion, esAdmin } from "@/lib/auth";
+import { guardPermiso } from "@/lib/permisos";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-function guard() {
-  const s = getSesion();
-  if (!s) return NextResponse.json({ ok: false, error: "No autenticado" }, { status: 401 });
-  if (!esAdmin(s)) return NextResponse.json({ ok: false, error: "Requiere rol ADMIN" }, { status: 403 });
-  return null;
-}
+const guard = () => guardPermiso("PANEL_USUARIOS");
 
 // Lista completa de usuarios (solo admin).
 export async function GET() {
-  const err = guard();
+  const err = await guard();
   if (err) return err;
   try {
     const usuarios = await query(
@@ -38,7 +33,7 @@ export async function GET() {
 
 // Alta de usuario. El PIN lo crea el propio usuario desde el bot (requiere_cambio_pin = true).
 export async function POST(req: NextRequest) {
-  const err = guard();
+  const err = await guard();
   if (err) return err;
   let body: { nombre?: string; rol?: string; telegram_id?: string | number };
   try {
