@@ -15,6 +15,8 @@ import {
   X,
   BookOpen,
   MonitorSmartphone,
+  Building2,
+  Wheat,
 } from "lucide-react";
 import { LoginControl } from "./LoginControl";
 import { cn } from "@/lib/utils";
@@ -23,6 +25,8 @@ const adminChildren = [
   { tab: "usuarios", label: "Usuarios", icon: Users },
   { tab: "permisos", label: "Roles", icon: ShieldCheck },
   { tab: "precintos", label: "Precintos", icon: PackageSearch },
+  { tab: "establecimientos", label: "Establecimientos", icon: Building2 },
+  { tab: "granos", label: "Granos", icon: Wheat },
 ];
 
 export function Sidebar({ nombre, isAdmin }: { nombre: string | null; isAdmin: boolean }) {

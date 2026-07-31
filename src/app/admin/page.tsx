@@ -3,6 +3,8 @@ import { query } from "@/lib/db";
 import { AdminPanel, AdminData } from "@/components/admin/AdminPanel";
 import { Usuario } from "@/components/admin/UsuariosTab";
 import { Permiso, RolPermiso } from "@/components/admin/PermisosMatrix";
+import { Establecimiento } from "@/components/admin/EstablecimientosTab";
+import { Grano, CampoCalidad } from "@/components/admin/GranosTab";
 import type { Precarga, PrecargaItem } from "@/lib/types";
 import { ShieldAlert, Settings2 } from "lucide-react";
 
@@ -58,7 +60,37 @@ async function loadData(): Promise<AdminData> {
     // F0_010 no aplicada todavia.
   }
 
-  return { usuarios, roles, permisos, rolPermisos, precargas };
+  // Maestros: establecimientos (F0_017) y granos + campos de calidad (F0_016).
+  let establecimientos: Establecimiento[] = [];
+  let granos: Grano[] = [];
+  let campos: CampoCalidad[] = [];
+  try {
+    establecimientos = await query<Establecimiento>(
+      `SELECT e.codigo, e.nombre, e.tipo, e.observaciones,
+              (e.vigente_hasta IS NULL OR e.vigente_hasta > now()) AS vigente,
+              (SELECT count(*) FROM traz_trazabilidades t WHERE t.codigo_establecimiento = e.codigo) AS usos
+       FROM establecimientos e ORDER BY e.nombre`
+    );
+  } catch {
+    // F0_017 no aplicada todavía.
+  }
+  try {
+    granos = await query<Grano>(
+      `SELECT g.codigo, g.nombre, g.vida_util_meses, g.observaciones,
+              (g.vigente_hasta IS NULL OR g.vigente_hasta > now()) AS vigente,
+              (SELECT count(*) FROM granos_campos_calidad c WHERE c.codigo_grano = g.codigo) AS campos,
+              (SELECT count(*) FROM traz_trazabilidades t WHERE t.codigo_grano = g.codigo) AS usos
+       FROM granos g ORDER BY g.nombre`
+    );
+    campos = await query<CampoCalidad>(
+      `SELECT codigo_grano, orden, campo_key, etiqueta, suma_caida
+         FROM granos_campos_calidad ORDER BY codigo_grano, orden`
+    );
+  } catch {
+    // F0_016 no aplicada todavía.
+  }
+
+  return { usuarios, roles, permisos, rolPermisos, precargas, establecimientos, granos, campos };
 }
 
 export default async function AdminPage() {
