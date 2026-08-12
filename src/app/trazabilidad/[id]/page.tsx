@@ -119,7 +119,7 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
         Array.from(cpGroups.entries()).map(([cpe, evts]) => {
           const ocrEvt = evts.find((e) => e.tipo_evento === "EV_OCR_CARTA_PORTE");
           const doneCount = new Set(evts.map(stepKeyForEvent)).size;
-          return <CPCard key={cpe} cpe={cpe} evts={evts} ocrEvt={ocrEvt} doneCount={doneCount} totalDefs={totalDefs} firmas={traz.firmas || []} trazabilidadId={traz.trazabilidad_id} canEdit={!!sesion} actorNombre={sesion?.nombre || ""} />;
+          return <CPCard key={cpe} cpe={cpe} evts={evts} ocrEvt={ocrEvt} doneCount={doneCount} totalDefs={totalDefs} firmas={traz.firmas || []} trazabilidadId={traz.trazabilidad_id} canEdit={!!sesion} actorNombre={sesion?.nombre || ""} humedadMaxGrano={traz.humedad_pct_max ?? null} />;
         })
       )}
     </div>

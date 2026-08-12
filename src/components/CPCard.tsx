@@ -35,7 +35,7 @@ function buildEventGroups(evts: TrazEvento[]) {
   return groups;
 }
 
-export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [], trazabilidadId, canEdit = false, actorNombre = "" }: {
+export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [], trazabilidadId, canEdit = false, actorNombre = "", humedadMaxGrano = null }: {
   cpe: string;
   evts: TrazEvento[];
   ocrEvt?: TrazEvento;
@@ -45,6 +45,8 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [], t
   trazabilidadId: string;
   canEdit?: boolean;
   actorNombre?: string;
+  /** Humedad máxima vigente del grano, para marcar los valores fuera de norma. */
+  humedadMaxGrano?: number | null;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [collapsed, setCollapsed] = useState(true); // solapas comprimidas por defecto
@@ -174,7 +176,7 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [], t
                   {group.evts.map((evt) => {
                     const def = defForEvent(evt);
                     const isOK = evt.resultado === "OK" || evt.resultado === "APROBADO";
-                    return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} canEdit={canEdit} actorNombre={actorNombre} firmante={firma?.firmante} />;
+                    return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} canEdit={canEdit} actorNombre={actorNombre} firmante={firma?.firmante} humedadMaxGrano={humedadMaxGrano} />;
                   })}
                 </div>
               </div>
@@ -188,7 +190,7 @@ export function CPCard({ cpe, evts, ocrEvt, doneCount, totalDefs, firmas = [], t
             const def = defForEvent(evt);
             const isOK = evt.resultado === "OK" || evt.resultado === "APROBADO";
             const firma = firmas.find((f) => f.evento_tipo === evt.tipo_evento);
-            return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} canEdit={canEdit} actorNombre={actorNombre} firmante={firma?.firmante} />;
+            return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} canEdit={canEdit} actorNombre={actorNombre} firmante={firma?.firmante} humedadMaxGrano={humedadMaxGrano} />;
           });
         })}
 

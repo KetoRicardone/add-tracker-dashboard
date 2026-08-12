@@ -9,6 +9,8 @@ export interface Trazabilidad {
   fecha_cierre: string | null;
   eventos: TrazEvento[];
   firmas?: Firma[];
+  /** Humedad máxima vigente del grano (parametros_calidad); null si no se cargó. */
+  humedad_pct_max?: number | null;
   progreso: number;
   total_eventos: number;
   completados: number;

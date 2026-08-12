@@ -1,5 +1,8 @@
 import { cn } from "@/lib/utils";
-import { humanizeKey, formatScalar, isChecklistMap, type ChecklistValue } from "@/lib/eventMeta";
+import {
+  humanizeKey, formatScalar, isChecklistMap, type ChecklistValue,
+  limiteHumedadValido, estadoHumedad, TOLERANCIA_HUMEDAD,
+} from "@/lib/eventMeta";
 import { Check, X, AlertTriangle, Minus } from "lucide-react";
 
 // Claves que se muestran en otro lado (observaciones) o son ruido visual.
@@ -74,16 +77,50 @@ function ChecklistBlock({ title, obj, flagWhenTrue }: { title: string; obj: Reco
   );
 }
 
-function ScalarGrid({ items }: { items: [string, unknown][] }) {
+function ScalarGrid({ items, limiteHumedad }: { items: [string, unknown][]; limiteHumedad: number | null }) {
   if (items.length === 0) return null;
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-      {items.map(([k, v]) => (
-        <div key={k} className="rounded-md bg-secondary/40 px-2.5 py-1.5">
-          <p className="text-[10px] text-muted-foreground truncate">{humanizeKey(k)}</p>
-          <p className="text-sm font-medium truncate">{formatScalar(k, v)}</p>
-        </div>
-      ))}
+      {items.map(([k, v]) => {
+        if (k === "humedad_pct") return <HumedadTile key={k} valor={v} limite={limiteHumedad} />;
+        return (
+          <div key={k} className="rounded-md bg-secondary/40 px-2.5 py-1.5">
+            <p className="text-[10px] text-muted-foreground truncate">{humanizeKey(k)}</p>
+            <p className="text-sm font-medium truncate">{formatScalar(k, v)}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** La humedad se lee contra el límite del grano: pasado el máximo + 2 el lote
+ *  se rechaza (R-PRAN-02), así que se resalta en rojo. */
+function HumedadTile({ valor, limite }: { valor: unknown; limite: number | null }) {
+  const estado = estadoHumedad(valor, limite);
+  const rechazo = estado === "rechazo";
+  const excedido = estado === "excedido";
+  return (
+    <div
+      className={cn(
+        "rounded-md px-2.5 py-1.5",
+        rechazo ? "bg-destructive/15 ring-1 ring-destructive/40" : excedido ? "bg-warning/15" : "bg-secondary/40"
+      )}
+    >
+      <p className="flex items-center gap-1 text-[10px] text-muted-foreground truncate">
+        Humedad
+        {rechazo && <AlertTriangle className="h-2.5 w-2.5 text-destructive" />}
+      </p>
+      <p className={cn("text-sm font-medium truncate", rechazo && "text-destructive", excedido && "text-warning")}>
+        {formatScalar("humedad_pct", valor)}
+      </p>
+      <p className="text-[10px] text-muted-foreground truncate">
+        {limite == null
+          ? "sin límite cargado"
+          : rechazo
+            ? `supera ${limite}% + ${TOLERANCIA_HUMEDAD} de tolerancia`
+            : `máx ${limite}%`}
+      </p>
     </div>
   );
 }
@@ -135,8 +172,19 @@ function partition(obj: Record<string, unknown>) {
   return { scalars, checklists, lists, nested };
 }
 
-export function EventDataView({ datos }: { datos: Record<string, unknown> }) {
+export function EventDataView({
+  datos,
+  humedadMaxGrano = null,
+}: {
+  datos: Record<string, unknown>;
+  /** Límite vigente del grano, como respaldo para eventos que no lo guardaron. */
+  humedadMaxGrano?: number | null;
+}) {
   const { scalars, checklists, lists, nested } = partition(datos);
+
+  // El límite que rigió cuando se registró el evento manda sobre el actual
+  // (ADR-007). Si el evento no lo trae, se usa el vigente del grano.
+  const limiteHumedad = limiteHumedadValido(datos.humedad_pct_max) ?? humedadMaxGrano;
 
   const hasContent =
     scalars.length > 0 || checklists.length > 0 || lists.length > 0 || nested.length > 0;
@@ -146,7 +194,7 @@ export function EventDataView({ datos }: { datos: Record<string, unknown> }) {
 
   return (
     <div className="space-y-3">
-      <ScalarGrid items={scalars} />
+      <ScalarGrid items={scalars} limiteHumedad={limiteHumedad} />
 
       {checklists.map(([k, v]) => (
         <ChecklistBlock key={k} title={humanizeKey(k)} obj={v} flagWhenTrue={FLAG_WHEN_TRUE.has(k)} />
@@ -162,7 +210,7 @@ export function EventDataView({ datos }: { datos: Record<string, unknown> }) {
           <div key={k} className="rounded-lg border border-border/50 p-3">
             <p className="text-xs font-semibold text-primary mb-2 uppercase tracking-wide">{humanizeKey(k)}</p>
             <div className="space-y-2">
-              <ScalarGrid items={sub.scalars} />
+              <ScalarGrid items={sub.scalars} limiteHumedad={limiteHumedad} />
               {sub.checklists.map(([sk, sv]) => (
                 <ChecklistBlock key={sk} title={humanizeKey(sk)} obj={sv} flagWhenTrue={FLAG_WHEN_TRUE.has(sk)} />
               ))}

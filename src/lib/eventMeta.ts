@@ -182,6 +182,32 @@ export function formatScalar(key: string, value: unknown): string {
   return unit ? `${value} ${unit}` : String(value);
 }
 
+// ── Humedad vs. límite del grano ────────────────────────────────────────────
+// R-PRAN-02: por encima del máximo + 2 puntos el lote se rechaza. Entre el
+// máximo y +2 está tolerado. Sin límite cargado no hay nada que comparar.
+export const TOLERANCIA_HUMEDAD = 2;
+
+/** Antes de F0_020 el workflow inventaba 99 cuando el grano no tenía parámetro.
+ *  Quedó guardado en eventos viejos; 99% de humedad no existe, así que se
+ *  descarta como "sin límite" en vez de mostrarlo como umbral válido. */
+const LIMITE_FALSO_LEGACY = 99;
+
+export function limiteHumedadValido(valor: unknown): number | null {
+  const n = typeof valor === "number" ? valor : Number(valor);
+  if (!Number.isFinite(n) || n <= 0 || n >= LIMITE_FALSO_LEGACY) return null;
+  return n;
+}
+
+export type EstadoHumedad = "sin_limite" | "ok" | "excedido" | "rechazo";
+
+export function estadoHumedad(humedad: unknown, limite: number | null): EstadoHumedad {
+  const h = typeof humedad === "number" ? humedad : Number(humedad);
+  if (limite == null || !Number.isFinite(h)) return "sin_limite";
+  if (h > limite + TOLERANCIA_HUMEDAD) return "rechazo";
+  if (h > limite) return "excedido";
+  return "ok";
+}
+
 /** ¿es un objeto plano de solo booleanos? (checklist) */
 export function isBooleanMap(value: unknown): value is Record<string, boolean> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;

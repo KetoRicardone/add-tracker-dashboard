@@ -20,7 +20,7 @@ function getObservaciones(datos: Record<string, unknown>): string | null {
   return null;
 }
 
-export function EventCompactRow({ evt, def, isOK, canEdit = false, actorNombre = "", firmante }: {
+export function EventCompactRow({ evt, def, isOK, canEdit = false, actorNombre = "", firmante, humedadMaxGrano = null }: {
   evt: TrazEvento;
   def?: { nombre: string; rgan: string; icon: string; gate: boolean };
   isOK: boolean;
@@ -28,6 +28,8 @@ export function EventCompactRow({ evt, def, isOK, canEdit = false, actorNombre =
   actorNombre?: string;
   /** Firmante del documento que cierra este evento, si está firmado. */
   firmante?: string;
+  /** Humedad máxima vigente del grano, para marcar los valores fuera de norma. */
+  humedadMaxGrano?: number | null;
 }) {
   const [open, setOpen] = useState(false);
   const datos = evt.datos || {};
@@ -72,7 +74,7 @@ export function EventCompactRow({ evt, def, isOK, canEdit = false, actorNombre =
               </span>
             )}
           </div>
-          <EventDataView datos={datos} />
+          <EventDataView datos={datos} humedadMaxGrano={humedadMaxGrano} />
           <details className="text-[11px]">
             <summary className="cursor-pointer text-muted-foreground/70 hover:text-muted-foreground">Ver datos crudos (JSON)</summary>
             <pre className="mt-2 rounded bg-secondary/30 p-2 font-mono text-[10px] whitespace-pre-wrap break-all text-muted-foreground">{JSON.stringify(datos, null, 2)}</pre>

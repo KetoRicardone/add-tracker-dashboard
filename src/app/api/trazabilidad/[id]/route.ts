@@ -22,11 +22,18 @@ export async function GET(
       campania: string;
       estado_trazabilidad: string;
       created_at: string;
+      humedad_pct_max: number | null;
     }>(
-      `SELECT trazabilidad_id, codigo_grano, codigo_establecimiento,
-              campania, estado_trazabilidad, created_at
-       FROM traz_trazabilidades
-       WHERE trazabilidad_id = $1`,
+      // El límite de humedad vigente del grano acompaña a la trazabilidad: la
+      // vista de eventos lo necesita para resaltar la humedad fuera de norma.
+      `SELECT t.trazabilidad_id, t.codigo_grano, t.codigo_establecimiento,
+              t.campania, t.estado_trazabilidad, t.created_at,
+              (SELECT p.humedad_pct_max FROM parametros_calidad p
+                WHERE p.codigo_grano = t.codigo_grano AND p.vigente_desde <= now()
+                  AND (p.vigente_hasta IS NULL OR p.vigente_hasta > now())
+                ORDER BY p.vigente_desde DESC LIMIT 1) AS humedad_pct_max
+       FROM traz_trazabilidades t
+       WHERE t.trazabilidad_id = $1`,
       [id]
     );
 
