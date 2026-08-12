@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Wheat, Loader2, Plus, Check, X, Pencil, Power, ChevronDown, Trash2 } from "lucide-react";
+import { Wheat, Loader2, Plus, Check, X, Pencil, Power, ChevronDown, Trash2, Droplet } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface Grano {
@@ -13,6 +13,8 @@ export interface Grano {
   vigente: boolean;
   campos: string | number;
   usos: string | number;
+  /** De parametros_calidad, la fila vigente. null = sin límite cargado. */
+  humedad_pct_max: string | number | null;
 }
 
 export interface CampoCalidad {
@@ -35,6 +37,7 @@ export function GranosTab({ granos, campos }: { granos: Grano[]; campos: CampoCa
   const [nuevo, setNuevo] = useState({ codigo: "", nombre: "", vida_util_meses: "" });
   const [creando, setCreando] = useState(false);
   const [nuevoCampo, setNuevoCampo] = useState<{ grano: string; etiqueta: string; suma: boolean }>({ grano: "", etiqueta: "", suma: true });
+  const [humedad, setHumedad] = useState<{ grano: string; valor: string }>({ grano: "", valor: "" });
 
   async function llamar(url: string, method: string, body: Record<string, unknown> | null, tag: string) {
     setError("");
@@ -66,6 +69,11 @@ export function GranosTab({ granos, campos }: { granos: Grano[]; campos: CampoCa
     } finally {
       setCreando(false);
     }
+  }
+
+  async function guardarHumedad(grano: string) {
+    const valor = humedad.grano === grano ? humedad.valor.trim().replace(",", ".") : "";
+    await llamar("/api/admin/granos", "PATCH", { codigo: grano, humedad_pct_max: valor }, `${grano}:hum`);
   }
 
   async function agregarCampo(grano: string) {
@@ -143,7 +151,11 @@ export function GranosTab({ granos, campos }: { granos: Grano[]; campos: CampoCa
             <div key={g.codigo} className={cn("rounded-xl border border-border bg-card overflow-hidden", !g.vigente && "opacity-50")}>
               <div className="flex items-center gap-3 px-4 py-3">
                 <button
-                  onClick={() => { setAbierto(open ? null : g.codigo); setNuevoCampo({ grano: g.codigo, etiqueta: "", suma: true }); }}
+                  onClick={() => {
+                    setAbierto(open ? null : g.codigo);
+                    setNuevoCampo({ grano: g.codigo, etiqueta: "", suma: true });
+                    setHumedad({ grano: g.codigo, valor: g.humedad_pct_max == null ? "" : String(g.humedad_pct_max) });
+                  }}
                   className="flex flex-1 items-center gap-3 text-left"
                 >
                   <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", !open && "-rotate-90")} />
@@ -162,6 +174,15 @@ export function GranosTab({ granos, campos }: { granos: Grano[]; campos: CampoCa
                     {misCampos.length} {misCampos.length === 1 ? "campo" : "campos"}
                     {Number(g.usos) > 0 && ` · ${g.usos} trazabilidad(es)`}
                   </span>
+                  {g.humedad_pct_max == null ? (
+                    <span className="rounded bg-warning/15 px-1.5 py-0.5 text-[10px] font-medium text-warning">
+                      sin humedad máx.
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      <Droplet className="h-2.5 w-2.5" /> máx {g.humedad_pct_max}%
+                    </span>
+                  )}
                 </button>
                 <div className="flex items-center gap-1.5">
                   {enEdicion ? (
@@ -202,6 +223,39 @@ export function GranosTab({ granos, campos }: { granos: Grano[]; campos: CampoCa
 
               {open && (
                 <div className="border-t border-border/60 bg-secondary/10 px-4 py-3">
+                  {/* Humedad máxima: la usa el control de Calidad MP (RGAN-38) para
+                      decidir si el lote pasa, y se muestra al operario junto al valor medido. */}
+                  <p className="mb-2 text-xs font-semibold text-foreground/80">Parámetro de calidad</p>
+                  <div className="mb-4 flex flex-wrap items-center gap-2">
+                    <label className="text-xs text-muted-foreground">Humedad máxima</label>
+                    <input
+                      value={humedad.grano === g.codigo ? humedad.valor : ""}
+                      onChange={(e) => setHumedad({ grano: g.codigo, valor: e.target.value })}
+                      placeholder="ej: 6.5"
+                      inputMode="decimal"
+                      className={cn(inputCls, "w-24 py-1.5 text-xs")}
+                    />
+                    <span className="text-xs text-muted-foreground">%</span>
+                    <button
+                      onClick={() => guardarHumedad(g.codigo)}
+                      disabled={busy === `${g.codigo}:hum`}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-secondary disabled:opacity-50"
+                    >
+                      {busy === `${g.codigo}:hum` ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                      Guardar
+                    </button>
+                    {g.humedad_pct_max == null ? (
+                      <span className="text-[11px] text-warning">
+                        Sin límite cargado: el bot muestra “sin límite” y no rechaza por humedad.
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground">
+                        Vaciar el campo y guardar quita el límite. El histórico se conserva: se cierra la
+                        vigencia y se abre una nueva, así los eventos viejos siguen validados con el valor de su fecha.
+                      </span>
+                    )}
+                  </div>
+
                   <p className="mb-2 text-xs font-semibold text-foreground/80">Campos de calidad (RGAN-39)</p>
                   {misCampos.length === 0 && (
                     <p className="mb-2 text-xs text-warning">

@@ -133,7 +133,11 @@ async function loadGranos() {
       `SELECT g.codigo, g.nombre, g.vida_util_meses, g.observaciones,
               (g.vigente_hasta IS NULL OR g.vigente_hasta > now()) AS vigente,
               (SELECT count(*) FROM granos_campos_calidad c WHERE c.codigo_grano = g.codigo) AS campos,
-              (SELECT count(*) FROM traz_trazabilidades t WHERE t.codigo_grano = g.codigo) AS usos
+              (SELECT count(*) FROM traz_trazabilidades t WHERE t.codigo_grano = g.codigo) AS usos,
+              (SELECT p.humedad_pct_max FROM parametros_calidad p
+                WHERE p.codigo_grano = g.codigo AND p.vigente_desde <= now()
+                  AND (p.vigente_hasta IS NULL OR p.vigente_hasta > now())
+                ORDER BY p.vigente_desde DESC LIMIT 1) AS humedad_pct_max
        FROM granos g ORDER BY g.nombre`
     );
     campos = await query<CampoCalidad>(
