@@ -18,7 +18,8 @@ export type PermisoPanel =
   | "PANEL_ROLES"
   | "PANEL_PRECINTOS"
   | "PANEL_ESTABLECIMIENTOS"
-  | "PANEL_GRANOS";
+  | "PANEL_GRANOS"
+  | "PANEL_AUDITORIA";
 
 // Permisos que NO se le pueden quitar a ADMIN: sin ellos nadie podría volver a
 // entrar a la matriz para restaurarlos (candado de sí mismo).
@@ -28,6 +29,7 @@ const VER_CON_SESION: PermisoPanel[] = ["PANEL_ACCESO", "PANEL_TRAZABILIDAD", "P
 const ADMINISTRAR: PermisoPanel[] = [
   "PANEL_ADMIN", "PANEL_USUARIOS", "PANEL_ROLES",
   "PANEL_PRECINTOS", "PANEL_ESTABLECIMIENTOS", "PANEL_GRANOS",
+  "PANEL_AUDITORIA",
 ];
 
 // cache() de React: una sola consulta por request aunque la pregunten el layout,

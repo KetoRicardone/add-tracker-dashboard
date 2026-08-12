@@ -64,6 +64,7 @@ export const config = {
     "/manuales/:path*",
     "/trazabilidad/:path*",
     "/eventos/:path*",
+    "/auditoria/:path*",
     "/admin/:path*",
   ],
 };

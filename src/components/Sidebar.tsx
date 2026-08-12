@@ -105,6 +105,11 @@ export function Sidebar({ nombre, permisos }: { nombre: string | null; permisos:
           <ListChecks className="h-4 w-4" /> Eventos
         </Link>
       )}
+      {puede("PANEL_AUDITORIA") && (
+        <Link href="/auditoria" onClick={() => setOpen(false)} className={linkClass(pathname.startsWith("/auditoria"))}>
+          <ShieldCheck className="h-4 w-4" /> Auditoría
+        </Link>
+      )}
 
       {verAdmin && (
         <div>
