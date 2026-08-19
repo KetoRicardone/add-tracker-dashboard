@@ -81,3 +81,15 @@ export interface PrecargaItem {
   peso_corregido: boolean;
   created_at: string;
 }
+
+/**
+ * Big bags de una Carta de Porte y cuántos ya entraron a la línea de proceso.
+ * Se calcula cruzando los precintos de RGAN-55 con los de RGAN-41: el número de
+ * precinto es el dato duro, el `cpe` del evento de proceso es derivado.
+ */
+export interface ConsumoCP {
+  recibidos: number;
+  enProceso: number;
+  kgRecibidos: number;
+  kgEnProceso: number;
+}

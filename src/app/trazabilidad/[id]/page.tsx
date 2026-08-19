@@ -1,7 +1,8 @@
-import { Trazabilidad, TrazEvento } from "@/lib/types";
-import { EVENT_DEFINITIONS, GRAIN_NAMES, stepKeyForEvent } from "@/lib/events";
+import { Trazabilidad, TrazEvento, ConsumoCP } from "@/lib/types";
+import { GRAIN_NAMES, defsForFase, faseForEvent } from "@/lib/events";
 import { formatDate, cn } from "@/lib/utils";
 import { CPCard } from "@/components/CPCard";
+import { FaseCard } from "@/components/FaseCard";
 import { FirmasCard } from "@/components/FirmasCard";
 import { LoginRequired } from "@/components/LoginRequired";
 import { SinPermiso } from "@/components/SinPermiso";
@@ -37,26 +38,79 @@ function getCPE(evt: TrazEvento): string | null {
 const SIN_CP = "__sin_cp__";
 
 /**
- * Agrupa eventos por Carta de Porte. Los eventos sin CPE (ej. Calidad MP que
- * no propagó el campo) NO se descartan: si hay una sola CP, se adjuntan a ella;
- * si hay varias, van a un grupo "Sin CP asignada" para que siempre se vean.
+ * Clave de agrupación de un evento de recepción. Los eventos sin CPE (ej. Calidad
+ * MP que no propagó el campo) NO se descartan: si hay una sola CP se adjuntan a
+ * ella, y si hay varias van a "Sin CP asignada" para que siempre se vean.
  */
-function groupByCPE(eventos: TrazEvento[]): Map<string, TrazEvento[]> {
-  const cpes = Array.from(
-    new Set(eventos.map(getCPE).filter((c): c is string => !!c))
-  );
-  const soleCPE = cpes.length === 1 ? cpes[0] : null;
+function claveCP(evt: TrazEvento, soleCPE: string | null): string {
+  return getCPE(evt) || soleCPE || SIN_CP;
+}
 
+/** Agrupa por Carta de Porte. Recibe SOLO eventos de recepción (Fase 1). */
+function groupByCPE(eventos: TrazEvento[], soleCPE: string | null): Map<string, TrazEvento[]> {
   const groups = new Map<string, TrazEvento[]>();
-  cpes.forEach((c) => groups.set(c, [])); // preserva el orden de aparición
+  // Preserva el orden de aparición de las CPs.
+  eventos.forEach((evt) => {
+    const cpe = getCPE(evt);
+    if (cpe && !groups.has(cpe)) groups.set(cpe, []);
+  });
 
   eventos.forEach((evt) => {
-    const key = getCPE(evt) || soleCPE || SIN_CP;
+    const key = claveCP(evt, soleCPE);
     const arr = groups.get(key) || [];
     arr.push(evt);
     groups.set(key, arr);
   });
   return groups;
+}
+
+function precintosDe(evt: TrazEvento): Record<string, unknown>[] {
+  const p = (evt.datos || {}).precintos;
+  return Array.isArray(p) ? (p as Record<string, unknown>[]) : [];
+}
+
+/**
+ * Cuántos big bags de cada CP ya entraron a la línea de proceso.
+ * Se cruza por NÚMERO DE PRECINTO, no por el `cpe` del evento de proceso: el
+ * número es el dato duro y el cpe de ese evento es derivado. La API ya excluye
+ * eventos anulados, así que anular un ingreso libera los big bags solo.
+ */
+function calcularConsumo(eventos: TrazEvento[], soleCPE: string | null): Map<string, ConsumoCP> {
+  const yaEnProceso = new Set<string>();
+  eventos
+    .filter((e) => e.tipo_evento === "EV_INGRESO_A_PROCESO")
+    .forEach((e) => precintosDe(e).forEach((p) => {
+      if (typeof p.nro === "string" && p.nro) yaEnProceso.add(p.nro);
+    }));
+
+  const porCP = new Map<string, ConsumoCP>();
+  eventos
+    .filter((e) => e.tipo_evento === "EV_INGRESO_MP_DETALLE")
+    .forEach((e) => {
+      const key = claveCP(e, soleCPE);
+      const acc = porCP.get(key) || { recibidos: 0, enProceso: 0, kgRecibidos: 0, kgEnProceso: 0 };
+      precintosDe(e).forEach((p) => {
+        const nro = typeof p.nro === "string" ? p.nro : "";
+        const peso = typeof p.peso === "number" ? p.peso : 0;
+        acc.recibidos += 1;
+        acc.kgRecibidos += peso;
+        if (nro && yaEnProceso.has(nro)) {
+          acc.enProceso += 1;
+          acc.kgEnProceso += peso;
+        }
+      });
+      porCP.set(key, acc);
+    });
+  return porCP;
+}
+
+function TituloSeccion({ children, nota }: { children: React.ReactNode; nota?: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 flex-wrap px-1">
+      <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{children}</h2>
+      {nota && <span className="text-[11px] text-muted-foreground/70">{nota}</span>}
+    </div>
+  );
 }
 
 export default async function TrazabilidadDetailPage({ params }: { params: { id: string } }) {
@@ -75,8 +129,21 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
     );
   }
 
-  const cpGroups = groupByCPE(traz.eventos);
-  const totalDefs = EVENT_DEFINITIONS.length;
+  // La Carta de Porte gobierna la recepción. Desde el ingreso a proceso la línea
+  // se arma por establecimiento y grano, y el control de proceso es del turno:
+  // esos eventos no pertenecen a ninguna CP y se muestran a nivel lote.
+  const eventosRecepcion = traz.eventos.filter((e) => faseForEvent(e) === 1);
+  const eventosProceso = traz.eventos.filter((e) => faseForEvent(e) === 2);
+  const eventosSalida = traz.eventos.filter((e) => faseForEvent(e) >= 3);
+
+  const cpes = Array.from(new Set(eventosRecepcion.map(getCPE).filter((c): c is string => !!c)));
+  const soleCPE = cpes.length === 1 ? cpes[0] : null;
+  const cpGroups = groupByCPE(eventosRecepcion, soleCPE);
+  const consumoPorCP = calcularConsumo(traz.eventos, soleCPE);
+
+  const defsRecepcion = defsForFase([1]);
+  const defsProceso = defsForFase([2]);
+  const defsSalida = defsForFase([3, 4]);
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -113,15 +180,57 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
 
       <FirmasCard firmas={traz.firmas || []} />
 
-      {cpGroups.size === 0 ? (
-        <div className="rounded-xl border border-dashed border-border/50 bg-card/30 p-10 text-center text-muted-foreground text-sm">Sin Cartas de Porte registradas</div>
-      ) : (
-        Array.from(cpGroups.entries()).map(([cpe, evts]) => {
-          const ocrEvt = evts.find((e) => e.tipo_evento === "EV_OCR_CARTA_PORTE");
-          const doneCount = new Set(evts.map(stepKeyForEvent)).size;
-          return <CPCard key={cpe} cpe={cpe} evts={evts} ocrEvt={ocrEvt} doneCount={doneCount} totalDefs={totalDefs} firmas={traz.firmas || []} trazabilidadId={traz.trazabilidad_id} canEdit={!!sesion} actorNombre={sesion?.nombre || ""} humedadMaxGrano={traz.humedad_pct_max ?? null} />;
-        })
-      )}
+      <section className="space-y-3">
+        <TituloSeccion nota={`${defsRecepcion.length} pasos por CP`}>Recepción — por Carta de Porte</TituloSeccion>
+        {cpGroups.size === 0 ? (
+          <div className="rounded-xl border border-dashed border-border/50 bg-card/30 p-10 text-center text-muted-foreground text-sm">Sin Cartas de Porte registradas</div>
+        ) : (
+          Array.from(cpGroups.entries()).map(([cpe, evts]) => {
+            const ocrEvt = evts.find((e) => e.tipo_evento === "EV_OCR_CARTA_PORTE");
+            return (
+              <CPCard
+                key={cpe}
+                cpe={cpe}
+                evts={evts}
+                ocrEvt={ocrEvt}
+                defs={defsRecepcion}
+                consumo={consumoPorCP.get(cpe)}
+                firmas={traz.firmas || []}
+                trazabilidadId={traz.trazabilidad_id}
+                canEdit={!!sesion}
+                actorNombre={sesion?.nombre || ""}
+                humedadMaxGrano={traz.humedad_pct_max ?? null}
+              />
+            );
+          })
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <TituloSeccion nota="no pertenece a una CP">Procesamiento y salida — por lote</TituloSeccion>
+        <FaseCard
+          titulo="Procesos"
+          subtitulo="Ingreso a la línea, control de proceso y caídas"
+          variante="proceso"
+          evts={eventosProceso}
+          defs={defsProceso}
+          firmas={traz.firmas || []}
+          canEdit={!!sesion}
+          actorNombre={sesion?.nombre || ""}
+          humedadMaxGrano={traz.humedad_pct_max ?? null}
+        />
+        <FaseCard
+          titulo="Embolsado y salida"
+          subtitulo="Envasado, PCC, liberación y despacho"
+          variante="salida"
+          evts={eventosSalida}
+          defs={defsSalida}
+          firmas={traz.firmas || []}
+          canEdit={!!sesion}
+          actorNombre={sesion?.nombre || ""}
+          humedadMaxGrano={traz.humedad_pct_max ?? null}
+        />
+      </section>
     </div>
   );
 }

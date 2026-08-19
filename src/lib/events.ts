@@ -217,3 +217,42 @@ export const FASE_NAMES: Record<number, string> = {
   3: "Embolsado + PCC + Liberación",
   4: "Despacho",
 };
+
+/** Definiciones del circuito que pertenecen a alguna de las fases dadas. */
+export function defsForFase(fases: number[]): EventDefinition[] {
+  return EVENT_DEFINITIONS.filter((d) => fases.includes(d.fase));
+}
+
+/**
+ * Fase del circuito a la que pertenece un evento registrado.
+ * Un tipo sin definición cae en Recepción, que es donde se venía mostrando antes
+ * de partir la ficha por fase: así ninguna fila vieja desaparece de la pantalla.
+ */
+export function faseForEvent(evt: Pick<TrazEvento, "tipo_evento" | "datos">): number {
+  return defForEvent(evt)?.fase ?? 1;
+}
+
+/** Mapea un grupo RGAN al evento_tipo de la firma que lo cierra. */
+export const GROUP_FIRMA_EVENTO: Record<string, string> = {
+  "RGAN-38": "RGAN38_COMPLETO",
+};
+
+/** Agrupa eventos consecutivos que comparten el mismo `def.grupo`. */
+export function buildEventGroups(evts: TrazEvento[]) {
+  const groups: { grupo: string | null; evts: TrazEvento[] }[] = [];
+  let current: { grupo: string | null; evts: TrazEvento[] } | null = null;
+
+  for (const evt of evts) {
+    const def = defForEvent(evt);
+    const g = def?.grupo || null;
+
+    if (current && current.grupo === g) {
+      current.evts.push(evt);
+    } else {
+      if (current) groups.push(current);
+      current = { grupo: g, evts: [evt] };
+    }
+  }
+  if (current) groups.push(current);
+  return groups;
+}

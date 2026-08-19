@@ -20,12 +20,16 @@ function getObservaciones(datos: Record<string, unknown>): string | null {
   return null;
 }
 
-export function EventCompactRow({ evt, def, isOK, canEdit = false, actorNombre = "", firmante, humedadMaxGrano = null }: {
+export function EventCompactRow({ evt, def, isOK, canEdit = false, actorNombre = "", firmante, humedadMaxGrano = null, etiqueta }: {
   evt: TrazEvento;
   def?: { nombre: string; rgan: string; icon: string; gate: boolean };
   isOK: boolean;
   canEdit?: boolean;
   actorNombre?: string;
+  /** Reemplaza el nombre del evento. Lo usa el desglose de una corrida, donde
+   *  repetir "Ingreso a Proceso" en cada fila no distingue nada: ahí lo que
+   *  identifica a la fila es la Carta de Porte que aportó los big bags. */
+  etiqueta?: string;
   /** Firmante del documento que cierra este evento, si está firmado. */
   firmante?: string;
   /** Humedad máxima vigente del grano, para marcar los valores fuera de norma. */
@@ -44,7 +48,7 @@ export function EventCompactRow({ evt, def, isOK, canEdit = false, actorNombre =
         <CheckCircle2 className={cn("h-4 w-4 flex-shrink-0", isOK ? "text-success" : "text-destructive")} />
         <span className="text-base leading-none flex-shrink-0" aria-hidden>{emojiForIcon(def?.icon)}</span>
         <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium">{def?.nombre || evt.tipo_evento}</span>
+          <span className={cn("text-sm font-medium", etiqueta && "font-mono text-[13px]")}>{etiqueta || def?.nombre || evt.tipo_evento}</span>
           <span className="text-[10px] text-muted-foreground font-mono bg-secondary/60 rounded px-1.5 py-0.5">{def?.rgan}</span>
           {def?.gate && <span title="Gate de control"><ShieldAlert className="h-3 w-3 text-warning" /></span>}
           {observaciones && <span title="Tiene observaciones"><MessageSquareText className="h-3 w-3 text-[#20b1aa] flex-shrink-0" /></span>}
