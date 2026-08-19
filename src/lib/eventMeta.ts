@@ -145,6 +145,8 @@ const FIELD_LABELS: Record<string, string> = {
   nro: "Precinto",
   tipo_ingreso: "Tipo de ingreso",
   peso_total: "Peso total",
+  firmado_por: "Firmado por",
+  seleccion: "Selección",
 };
 
 /** snake_case → "Texto Legible" (con diccionario por excepciones) */
