@@ -38,6 +38,7 @@ export const FIRMA_EVENTO_LABEL: Record<string, string> = {
   EV_CONTROL_CALIDAD_MP: "RGAN-39 — Calidad de Ingreso",
   EV_INGRESO_MP_DETALLE: "RGAN-55 — Ingreso de MP",
   EV_CONTROL_PROCESO: "RGAN-53 — Control de Proceso",
+  EV_REPROCESO: "RGAN-60 — Reproceso",
 };
 
 export function firmaEventoLabel(tipo?: string | null): string {
@@ -160,6 +161,12 @@ const FIELD_LABELS: Record<string, string> = {
   pureza_pct: "Pureza",
   detector_metales: "Detector de metales",
   interrupcion: "Interrupción",
+  // RGAN-60 Reproceso
+  precintos: "Precintos",
+  cantidad_precintos: "Cantidad de precintos",
+  total_kg: "Total",
+  color_precinto: "Color de precinto",
+  mantiene_trazabilidad_establecimiento: "Trazabilidad por establecimiento",
   // RGAN-61 Caídas de Proceso
   descarte_kg: "Descarte",
   basura_kg: "Basura",
