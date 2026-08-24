@@ -22,6 +22,7 @@ export async function GET() {
   try {
     const granos = await query(
       `SELECT g.codigo, g.nombre, g.vida_util_meses, g.observaciones, g.vigente_hasta,
+              g.codigo_export,
               (g.vigente_hasta IS NULL OR g.vigente_hasta > now()) AS vigente,
               (SELECT count(*) FROM granos_campos_calidad c WHERE c.codigo_grano = g.codigo) AS campos,
               (SELECT count(*) FROM traz_trazabilidades t WHERE t.codigo_grano = g.codigo) AS usos,
@@ -87,6 +88,7 @@ export async function PATCH(req: NextRequest) {
   let body: {
     codigo?: string; nombre?: string; vida_util_meses?: number | string;
     observaciones?: string; vigente?: boolean; humedad_pct_max?: number | string | null;
+    codigo_export?: string | null;
   };
   try {
     body = await req.json();
@@ -119,6 +121,31 @@ export async function PATCH(req: NextRequest) {
           [codigo, valor]
         );
       }
+      return NextResponse.json({ ok: true });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      return NextResponse.json({ ok: false, error: msg }, { status: 500 });
+    }
+  }
+
+  // Código del grano en inglés para el rótulo de estiba (F0_021). A diferencia de
+  // la humedad, no lleva vigencia temporal: es la identidad del producto, no un
+  // parámetro que se valide contra la fecha del evento.
+  if (body.codigo_export !== undefined) {
+    const crudo = (body.codigo_export || "").trim().toUpperCase();
+    if (crudo && !/^[A-Z]{2,4}$/.test(crudo)) {
+      return NextResponse.json(
+        { ok: false, error: "El código en inglés debe ser 2 a 4 letras (ej. WSS, BCH)" },
+        { status: 400 }
+      );
+    }
+    try {
+      const rows = await query<{ codigo: string }>(
+        `UPDATE granos SET codigo_export = NULLIF($2, ''), updated_at = now()
+          WHERE codigo = $1 RETURNING codigo`,
+        [codigo, crudo]
+      );
+      if (!rows.length) return NextResponse.json({ ok: false, error: "No existe ese grano" }, { status: 404 });
       return NextResponse.json({ ok: true });
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);

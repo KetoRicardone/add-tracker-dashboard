@@ -147,6 +147,24 @@ const FIELD_LABELS: Record<string, string> = {
   peso_total: "Peso total",
   firmado_por: "Firmado por",
   seleccion: "Selección",
+  // RGAN-53 Control de Proceso — encabezado del turno + lecturas horarias
+  estiba: "Estiba",
+  planta: "Planta",
+  turno: "Turno",
+  variedad: "Variedad",
+  campo: "Campo",
+  lecturas: "Lecturas del turno",
+  cantidad_lecturas: "Cantidad de lecturas",
+  hora: "Hora",
+  peso_muestra: "Peso de muestra",
+  pureza_pct: "Pureza",
+  detector_metales: "Detector de metales",
+  interrupcion: "Interrupción",
+  // RGAN-61 Caídas de Proceso
+  descarte_kg: "Descarte",
+  basura_kg: "Basura",
+  total_caida_kg: "Caída total",
+  observacion: "Observación",
 };
 
 /** snake_case → "Texto Legible" (con diccionario por excepciones) */

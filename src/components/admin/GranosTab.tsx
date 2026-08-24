@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Wheat, Loader2, Plus, Check, X, Pencil, Power, ChevronDown, Trash2, Droplet } from "lucide-react";
+import { Wheat, Loader2, Plus, Check, X, Pencil, Power, ChevronDown, Trash2, Droplet, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface Grano {
@@ -15,6 +15,8 @@ export interface Grano {
   usos: string | number;
   /** De parametros_calidad, la fila vigente. null = sin límite cargado. */
   humedad_pct_max: string | number | null;
+  /** Grano en inglés para el rótulo de estiba (WSS, BCH…). null = el bot lo pide a mano. */
+  codigo_export: string | null;
 }
 
 export interface CampoCalidad {
@@ -38,6 +40,7 @@ export function GranosTab({ granos, campos }: { granos: Grano[]; campos: CampoCa
   const [creando, setCreando] = useState(false);
   const [nuevoCampo, setNuevoCampo] = useState<{ grano: string; etiqueta: string; suma: boolean }>({ grano: "", etiqueta: "", suma: true });
   const [humedad, setHumedad] = useState<{ grano: string; valor: string }>({ grano: "", valor: "" });
+  const [exportCod, setExportCod] = useState<{ grano: string; valor: string }>({ grano: "", valor: "" });
 
   async function llamar(url: string, method: string, body: Record<string, unknown> | null, tag: string) {
     setError("");
@@ -74,6 +77,11 @@ export function GranosTab({ granos, campos }: { granos: Grano[]; campos: CampoCa
   async function guardarHumedad(grano: string) {
     const valor = humedad.grano === grano ? humedad.valor.trim().replace(",", ".") : "";
     await llamar("/api/admin/granos", "PATCH", { codigo: grano, humedad_pct_max: valor }, `${grano}:hum`);
+  }
+
+  async function guardarExport(grano: string) {
+    const valor = exportCod.grano === grano ? exportCod.valor.trim().toUpperCase() : "";
+    await llamar("/api/admin/granos", "PATCH", { codigo: grano, codigo_export: valor }, `${grano}:exp`);
   }
 
   async function agregarCampo(grano: string) {
@@ -155,6 +163,7 @@ export function GranosTab({ granos, campos }: { granos: Grano[]; campos: CampoCa
                     setAbierto(open ? null : g.codigo);
                     setNuevoCampo({ grano: g.codigo, etiqueta: "", suma: true });
                     setHumedad({ grano: g.codigo, valor: g.humedad_pct_max == null ? "" : String(g.humedad_pct_max) });
+                    setExportCod({ grano: g.codigo, valor: g.codigo_export || "" });
                   }}
                   className="flex flex-1 items-center gap-3 text-left"
                 >
@@ -181,6 +190,15 @@ export function GranosTab({ granos, campos }: { granos: Grano[]; campos: CampoCa
                   ) : (
                     <span className="inline-flex items-center gap-1 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                       <Droplet className="h-2.5 w-2.5" /> máx {g.humedad_pct_max}%
+                    </span>
+                  )}
+                  {g.codigo_export ? (
+                    <span className="inline-flex items-center gap-1 rounded bg-secondary px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground">
+                      <Tag className="h-2.5 w-2.5" /> {g.codigo_export}
+                    </span>
+                  ) : (
+                    <span className="rounded bg-warning/15 px-1.5 py-0.5 text-[10px] font-medium text-warning">
+                      sin código de rótulo
                     </span>
                   )}
                 </button>
@@ -252,6 +270,38 @@ export function GranosTab({ granos, campos }: { granos: Grano[]; campos: CampoCa
                       <span className="text-[11px] text-muted-foreground">
                         Vaciar el campo y guardar quita el límite. El histórico se conserva: se cierra la
                         vigencia y se abre una nueva, así los eventos viejos siguen validados con el valor de su fecha.
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Grano en inglés del rótulo de estiba: AR-<código>-LE05-25.
+                      Con esto el bot arma el rótulo solo en el Control de Proceso. */}
+                  <p className="mb-2 text-xs font-semibold text-foreground/80">Rótulo de estiba</p>
+                  <div className="mb-4 flex flex-wrap items-center gap-2">
+                    <label className="text-xs text-muted-foreground">Grano en inglés</label>
+                    <input
+                      value={exportCod.grano === g.codigo ? exportCod.valor : ""}
+                      onChange={(e) => setExportCod({ grano: g.codigo, valor: e.target.value.toUpperCase() })}
+                      placeholder="ej: WSS"
+                      maxLength={4}
+                      className={cn(inputCls, "w-24 py-1.5 font-mono text-xs uppercase")}
+                    />
+                    <button
+                      onClick={() => guardarExport(g.codigo)}
+                      disabled={busy === `${g.codigo}:exp`}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-secondary disabled:opacity-50"
+                    >
+                      {busy === `${g.codigo}:exp` ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                      Guardar
+                    </button>
+                    {g.codigo_export ? (
+                      <span className="text-[11px] text-muted-foreground">
+                        El bot propone <span className="font-mono">AR-{g.codigo_export}-LE01-26</span> y numera solo la estiba.
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-warning">
+                        Sin código, el bot no puede armar el rótulo y lo pide tipeado. Conocidos: WSS sésamo blanco,
+                        BCH chía negra, WCH chía blanca, WQ quinua blanca.
                       </span>
                     )}
                   </div>
