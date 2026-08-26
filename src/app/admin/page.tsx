@@ -130,7 +130,7 @@ async function loadGranos() {
   let campos: CampoCalidad[] = [];
   try {
     granos = await query<Grano>(
-      `SELECT g.codigo, g.nombre, g.vida_util_meses, g.observaciones,
+      `SELECT g.codigo, g.nombre, g.vida_util_meses, g.observaciones, g.codigo_export,
               (g.vigente_hasta IS NULL OR g.vigente_hasta > now()) AS vigente,
               (SELECT count(*) FROM granos_campos_calidad c WHERE c.codigo_grano = g.codigo) AS campos,
               (SELECT count(*) FROM traz_trazabilidades t WHERE t.codigo_grano = g.codigo) AS usos,
