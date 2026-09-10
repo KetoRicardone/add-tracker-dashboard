@@ -69,12 +69,12 @@ export function Sidebar({ nombre, permisos }: { nombre: string | null; permisos:
         Manuales
       </p>
       <a
-        href="/manuales/Manual_Bot_ADD_Tracker.pdf"
+        href="/manuales/manual-bot.html"
         target="_blank"
         rel="noopener"
         className={linkClass(false, true)}
       >
-        <BookOpen className="h-3.5 w-3.5" /> Manual del bot (PDF)
+        <BookOpen className="h-3.5 w-3.5" /> Manual del bot
       </a>
       {/* El manual del panel pasó a HTML navegable (índice lateral, buscador y
           anclas por sección, para que la ayuda en pantalla enlace al capítulo).

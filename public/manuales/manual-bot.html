@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Manual del bot — ADD Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Este manual se lee en planta, muchas veces impreso. Los estilos de
+     impresión no son un agregado: son el caso principal. */
+  :root {
+    --verde:      #38a935;
+    --verde-osc:  #2b7f29;
+    --verde-hoja: #689f38;
+    --verde-suave:#e8f5e9;
+    --teal:       #20b1aa;
+    --tinta:      #1c2321;
+    --gris:       #55605a;
+    --gris-2:     #8a938d;
+    --gris-claro: #f6f8f6;
+    --borde:      #e0e5e0;
+    --ambar:      #b7791f;
+    --ambar-bg:   #fdf6e7;
+    --rojo:       #c0392b;
+    --rojo-bg:    #fdeeec;
+    --sans: 'Roboto', 'Segoe UI', system-ui, sans-serif;
+    --display: 'Poppins', 'Segoe UI', sans-serif;
+    --mono: 'Roboto Mono', ui-monospace, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans); color: var(--tinta); background: #fff;
+    font-size: 15.5px; line-height: 1.65; -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--verde-osc); }
+
+  .app { display: grid; grid-template-columns: 272px minmax(0, 1fr); }
+
+  .indice {
+    position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
+    border-right: 1px solid var(--borde); background: var(--gris-claro);
+    padding: 22px 16px 40px;
+  }
+  .indice .marca {
+    display: flex; align-items: center; gap: 9px;
+    font-family: var(--display); font-weight: 700; font-size: 15px;
+  }
+  .indice .marca .hoja {
+    width: 28px; height: 28px; border-radius: 8px; background: var(--verde);
+    color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .indice .marca-sub { font-size: 11.5px; color: var(--gris-2); margin: 0 0 16px 37px; }
+  .buscador {
+    width: 100%; font-family: var(--sans); font-size: 13px; padding: 7px 10px;
+    border: 1px solid var(--borde); border-radius: 7px; background: #fff;
+    color: var(--tinta); margin-bottom: 14px;
+  }
+  .buscador:focus { outline: 2px solid var(--verde); outline-offset: -1px; border-color: var(--verde); }
+  .indice .grupo {
+    font-family: var(--display); font-size: 10.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .09em; color: var(--gris-2);
+    margin: 16px 0 5px;
+  }
+  .indice a {
+    display: flex; gap: 8px; align-items: baseline; padding: 5px 9px;
+    border-radius: 6px; font-size: 13.5px; color: var(--gris);
+    text-decoration: none; line-height: 1.35;
+  }
+  .indice a:hover { background: #fff; color: var(--tinta); }
+  .indice a.activo { background: var(--verde-suave); color: var(--verde-osc); font-weight: 500; }
+  .indice a .n { font-family: var(--mono); font-size: 11px; color: var(--gris-2); flex: 0 0 auto; min-width: 15px; }
+  .indice a.activo .n { color: var(--verde-osc); }
+  .indice a[hidden] { display: none; }
+
+  main { max-width: 860px; padding: 0 40px 100px; }
+
+  .portada { padding: 56px 0 30px; border-bottom: 2px solid var(--tinta); }
+  .portada .cejilla {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--verde); margin-bottom: 12px;
+  }
+  .portada h1 {
+    font-family: var(--display); font-size: 40px; line-height: 1.08;
+    letter-spacing: -.02em; font-weight: 700; margin-bottom: 12px;
+  }
+  .portada .bajada { font-size: 17px; color: var(--gris); font-weight: 300; max-width: 60ch; }
+  .portada .meta { margin-top: 22px; font-size: 12.5px; color: var(--gris-2); display: flex; gap: 16px; flex-wrap: wrap; }
+  .portada .meta b { color: var(--gris); font-weight: 500; }
+
+  section { padding-top: 34px; scroll-margin-top: 16px; }
+  h2 {
+    font-family: var(--display); font-size: 23px; font-weight: 600;
+    letter-spacing: -.015em; margin-bottom: 4px;
+    display: flex; align-items: baseline; gap: 11px; flex-wrap: wrap;
+  }
+  h2 .num { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--verde); flex: 0 0 auto; }
+  h2 .rgan {
+    font-family: var(--mono); font-size: 11.5px; font-weight: 500; color: var(--gris);
+    border: 1px solid var(--borde); border-radius: 5px; padding: 1px 7px;
+  }
+  h2 + .resumen {
+    color: var(--gris); font-size: 15px; margin-bottom: 14px;
+    padding-bottom: 12px; border-bottom: 1px solid var(--borde);
+  }
+  h3 { font-family: var(--display); font-size: 15.5px; font-weight: 600; color: var(--verde-hoja); margin: 20px 0 6px; }
+  p { margin: 9px 0; }
+  ul, ol { margin: 9px 0 9px 22px; }
+  li { margin: 4px 0; }
+  code {
+    font-family: var(--mono); font-size: 13px; background: var(--gris-claro);
+    border: 1px solid var(--borde); border-radius: 4px; padding: 0 4px;
+  }
+  .boton {
+    display: inline-block; border: 1.5px solid var(--verde); border-radius: 7px;
+    padding: 0 8px; font-size: 13px; color: var(--verde-osc); font-weight: 500;
+    background: #f4fbf4; white-space: nowrap; font-family: var(--display);
+  }
+
+  .nota, .alerta, .limite {
+    border-left: 3px solid; border-radius: 0 7px 7px 0;
+    padding: 10px 14px; margin: 14px 0; font-size: 14px;
+  }
+  .nota   { border-color: var(--teal);  background: #f1fbfa; }
+  .alerta { border-color: var(--ambar); background: var(--ambar-bg); }
+  .limite { border-color: var(--rojo);  background: var(--rojo-bg); }
+  .et {
+    font-family: var(--display); font-size: 10.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .08em; display: block; margin-bottom: 3px;
+  }
+  .nota .et { color: var(--teal); }
+  .alerta .et { color: var(--ambar); }
+  .limite .et { color: var(--rojo); }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13.5px; }
+  th {
+    background: var(--verde); color: #fff; text-align: left; padding: 7px 10px;
+    font-family: var(--display); font-weight: 600; font-size: 12.5px;
+  }
+  td { padding: 7px 10px; border-bottom: 1px solid var(--borde); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--gris-claro); }
+  .tabla-envoltura { overflow-x: auto; }
+
+  .pasos { list-style: none; margin: 12px 0; padding: 0; counter-reset: paso; }
+  .pasos li { display: flex; gap: 11px; align-items: flex-start; margin: 9px 0; counter-increment: paso; }
+  .pasos li::before {
+    content: counter(paso); flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--teal); color: #fff; display: flex; align-items: center;
+    justify-content: center; font-size: 12px; font-weight: 700; margin-top: 2px;
+    font-family: var(--display);
+  }
+
+  .pie { margin-top: 54px; padding-top: 18px; border-top: 1px solid var(--borde); color: var(--gris-2); font-size: 12.5px; }
+
+  .abrir-indice {
+    display: none; position: fixed; left: 14px; bottom: 14px; z-index: 40;
+    background: var(--verde); color: #fff; border: none; border-radius: 24px;
+    padding: 10px 18px; font-family: var(--display); font-weight: 600; font-size: 13.5px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.2); cursor: pointer;
+  }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .indice {
+      position: fixed; inset: 0 auto 0 0; width: 280px; z-index: 50;
+      transform: translateX(-100%); transition: transform .2s ease;
+      box-shadow: 0 0 40px rgba(0,0,0,.18);
+    }
+    .indice.abierto { transform: none; }
+    .abrir-indice { display: block; }
+    main { padding: 0 20px 100px; }
+    .portada h1 { font-size: 30px; }
+  }
+
+  @media print {
+    .indice, .abrir-indice { display: none !important; }
+    .app { display: block; }
+    main { max-width: none; padding: 0; }
+    body { font-size: 10.5pt; line-height: 1.5; }
+    section { padding-top: 18px; page-break-inside: auto; }
+    h2 { page-break-after: avoid; font-size: 15pt; }
+    h3 { page-break-after: avoid; font-size: 11.5pt; }
+    table, .nota, .alerta, .limite, .pasos li { page-break-inside: avoid; }
+    .portada { page-break-after: always; padding-top: 0; }
+    a { color: var(--tinta); text-decoration: none; }
+    @page { size: A4; margin: 15mm 14mm; }
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <nav class="indice" id="indice" aria-label="Índice del manual">
+    <div class="marca"><span class="hoja">🌾</span> ADD Tracker</div>
+    <p class="marca-sub">Manual del bot de Telegram</p>
+
+    <input class="buscador" id="buscador" type="search" placeholder="Buscar en el índice…" aria-label="Buscar en el índice">
+
+    <div class="grupo">Para empezar</div>
+    <a href="#que-es"><span class="n">1</span> Qué es el bot</a>
+    <a href="#ingreso"><span class="n">2</span> Primer ingreso y PIN</a>
+    <a href="#navegacion"><span class="n">3</span> Cómo se navega</a>
+    <a href="#firma"><span class="n">4</span> Firmar un documento</a>
+    <a href="#reglas-oro"><span class="n">5</span> Cuatro reglas de oro</a>
+
+    <div class="grupo">Recepción</div>
+    <a href="#nueva-trazabilidad"><span class="n">6</span> Nueva trazabilidad</a>
+    <a href="#rgan38"><span class="n">7</span> Camión y calidad</a>
+    <a href="#rgan39"><span class="n">8</span> Calidad de ingreso</a>
+    <a href="#rgan55"><span class="n">9</span> Ingreso de MP</a>
+    <a href="#precarga"><span class="n">10</span> Precarga de precintos</a>
+
+    <div class="grupo">Procesamiento</div>
+    <a href="#rgan41"><span class="n">11</span> Ingreso a proceso</a>
+    <a href="#rgan40"><span class="n">12</span> Limpieza de planta</a>
+    <a href="#rgan80"><span class="n">13</span> Mantenimiento diario</a>
+    <a href="#rgan53"><span class="n">14</span> Control de proceso</a>
+    <a href="#rgan61"><span class="n">15</span> Caídas de proceso</a>
+    <a href="#rgan60"><span class="n">16</span> Reproceso</a>
+
+    <div class="grupo">Embolsado y PCC</div>
+    <a href="#rgan57"><span class="n">17</span> Procesamiento de granos</a>
+    <a href="#rgan42"><span class="n">18</span> Peso de bolsas</a>
+    <a href="#rgan81"><span class="n">19</span> PCC detector de metales</a>
+
+    <div class="grupo">Salida</div>
+    <a href="#rgan104"><span class="n">20</span> Liberación de producto</a>
+    <a href="#rgan56"><span class="n">21</span> Registro de despacho</a>
+
+    <div class="grupo">Cierre</div>
+    <a href="#gestiones"><span class="n">22</span> Gestiones y PIN</a>
+    <a href="#problemas"><span class="n">23</span> Cuando algo sale mal</a>
+    <a href="#limites"><span class="n">24</span> Lo que todavía no hace</a>
+    <a href="#faq"><span class="n">25</span> Preguntas frecuentes</a>
+  </nav>
+
+  <main>
+
+    <header class="portada">
+      <div class="cejilla">Anta del Dorado S.A.</div>
+      <h1>Manual del bot de Telegram</h1>
+      <p class="bajada">
+        La herramienta de carga en planta. Todo lo que se registra acá aparece al instante en el
+        panel web, que es donde después se consulta y se audita.
+      </p>
+      <div class="meta">
+        <span><b>Versión</b> 2.0</span>
+        <span><b>Actualizado</b> 10 de septiembre de 2026</span>
+        <span><b>Bot</b> ADD Tracker</span>
+      </div>
+    </header>
+
+    <!-- ─────────── 1 ─────────── -->
+    <section id="que-es">
+      <h2><span class="num">01</span> Qué es el bot</h2>
+      <p class="resumen">Un chat de Telegram por el que pasa toda la carga de la planta.</p>
+
+      <p>
+        En vez de planillas de papel que después alguien tiene que pasar a la computadora, cada
+        control se registra en el momento desde el teléfono. El bot pregunta de a un dato por vez,
+        con botones, y al final pide la firma con PIN.
+      </p>
+
+      <div class="nota">
+        <span class="et">Por qué el teléfono y no una computadora</span>
+        Porque el control se hace donde está el grano: en la fosa, en la línea, en el embolse. El
+        bot está pensado para usarse con una mano, a veces con guantes, y por eso casi todo se
+        contesta tocando un botón en vez de escribiendo.
+      </div>
+
+      <p>
+        Lo que registrás queda con tu nombre, la fecha y la hora, y —cuando el formulario lo pide—
+        tu firma. Después se consulta en el panel web, se cruza con el resto de la cadena y sirve
+        de respaldo ante una auditoría.
+      </p>
+    </section>
+
+    <!-- ─────────── 2 ─────────── -->
+    <section id="ingreso">
+      <h2><span class="num">02</span> Primer ingreso y PIN</h2>
+      <p class="resumen">Una sola vez, y después el bot ya te conoce.</p>
+
+      <ol class="pasos">
+        <li>Abrir el chat con el bot <b>ADD Tracker</b> en Telegram y escribir <code>/start</code>.</li>
+        <li>Si tu usuario ya está dado de alta, el bot te saluda por tu nombre y muestra el menú.</li>
+        <li>La primera vez que tengas que firmar algo, te va a pedir que <b>crees tu PIN</b>.</li>
+      </ol>
+
+      <div class="alerta">
+        <span class="et">Si el bot no te reconoce</span>
+        Quiere decir que tu usuario todavía no está cargado, o que está cargado sin tu identificador
+        de Telegram. Lo resuelve un administrador desde el panel web, en Administración → Usuarios.
+        No es algo que puedas arreglar desde el teléfono.
+      </div>
+
+      <div class="limite">
+        <span class="et">El PIN es tuyo y no se presta</span>
+        Es lo que le da validez legal a la firma de cada documento: firmar con el PIN de otro es
+        firmar en su nombre. El mensaje donde el bot muestra el PIN <b>se borra solo</b> del chat
+        apenas lo leés, para que no quede a la vista de nadie que agarre el teléfono.
+      </div>
+    </section>
+
+    <!-- ─────────── 3 ─────────── -->
+    <section id="navegacion">
+      <h2><span class="num">03</span> Cómo se navega</h2>
+      <p class="resumen">Botones para todo, y cuatro comandos que funcionan siempre.</p>
+
+      <h3>Los comandos</h3>
+      <div class="tabla-envoltura">
+        <table>
+          <thead><tr><th>Comando</th><th>Qué hace</th></tr></thead>
+          <tbody>
+            <tr><td><code>/menu</code></td><td>Vuelve al menú principal. <b>Cierra el formulario que tengas abierto.</b></td></tr>
+            <tr><td><code>/ayuda</code></td><td>Muestra qué podés hacer según tu rol. <b>No</b> cierra lo que estabas cargando: consultás y seguís.</td></tr>
+            <tr><td><code>/cancelar</code></td><td>Abandona el formulario actual sin guardar.</td></tr>
+            <tr><td><code>/start</code></td><td>Reinicia la conversación.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Están también en el botón <b>Menú</b> de Telegram, abajo a la izquierda del cuadro de texto:
+        no hace falta acordarse de escribirlos.
+      </p>
+
+      <div class="nota">
+        <span class="et">Un comando nunca se lo come el formulario</span>
+        Aunque estés en la mitad de un checklist, escribir <code>/menu</code> o <code>/ayuda</code>
+        funciona como comando y no se guarda como respuesta. Cualquier <b>otro</b> texto que escribas
+        mientras hay un formulario abierto sí se toma como la respuesta a lo que te está preguntando.
+      </div>
+
+      <h3>Si no ves un botón que esperabas</h3>
+      <p>
+        El menú muestra sólo los formularios que tu rol tiene habilitados. Cada formulario tiene su
+        propio permiso: se puede dar el de limpieza sin dar el del detector de metales. Si te falta
+        uno, lo habilita un administrador desde el panel, en Administración → Roles.
+      </p>
+    </section>
+
+    <!-- ─────────── 4 ─────────── -->
+    <section id="firma">
+      <h2><span class="num">04</span> Firmar un documento</h2>
+      <p class="resumen">El paso final de casi todos los formularios.</p>
+
+      <p>
+        Cuando terminás de cargar, el bot muestra un <b>resumen</b> de todo lo que ingresaste.
+        Revisalo: es la última oportunidad de corregir sin tener que anular después. Si está bien,
+        confirmás y el bot te pide el PIN.
+      </p>
+
+      <div class="limite">
+        <span class="et">Si cancelás la firma, no se guarda nada</span>
+        Ni el evento, ni parte de él. Es a propósito: un registro sin firma no tiene respaldo. Si te
+        arrepentís en el medio, no queda basura en el sistema — pero tampoco queda lo que cargaste,
+        así que hay que hacerlo de nuevo.
+      </div>
+
+      <div class="alerta">
+        <span class="et">Una firma por documento, aunque la planilla de papel pida dos</span>
+        Las planillas de limpieza, mantenimiento y detector de metales tienen dos renglones de firma:
+        quien ejecuta y quien verifica. El bot registra la del que ejecuta. Firmar dos veces desde el
+        mismo teléfono daría <b>la misma persona</b> dos veces, y eso simularía un control cruzado
+        que no existió. La verificación tiene que llegar desde el chat del verificador, y todavía no
+        está construida.
+      </div>
+    </section>
+
+    <!-- ─────────── 5 ─────────── -->
+    <section id="reglas-oro">
+      <h2><span class="num">05</span> Cuatro reglas de oro</h2>
+      <p class="resumen">Si sólo vas a leer una página de este manual, que sea esta.</p>
+
+      <h3>1 · Un formulario por vez</h3>
+      <p>
+        El bot recuerda <b>una sola</b> carga a la vez por cada chat. Si estás cargando algo y abrís
+        otro formulario, lo que tenías a medio cargar <b>se pierde</b>. Terminá lo que empezaste, o
+        cancelalo a propósito.
+      </p>
+
+      <h3>2 · La foto de la Carta de Porte es el camino</h3>
+      <p>
+        Para crear una trazabilidad, sacá la foto. El bot lee los datos solo. Si la lectura sale mal,
+        sacá la foto de nuevo —mejor luz, papel plano, sin sombras— antes de pensar en cargar a mano.
+      </p>
+
+      <h3>3 · Revisá el resumen antes de firmar</h3>
+      <p>
+        Corregir antes de firmar es tocar un botón. Corregir después es una anulación con motivo, que
+        queda registrada para siempre.
+      </p>
+
+      <h3>4 · Si el bot te frena, tiene un motivo</h3>
+      <p>
+        Cuando un formulario no te deja avanzar, no es un error: es una regla del PRAN-10. El mensaje
+        dice cuál y, casi siempre, ofrece el botón para resolverla.
+      </p>
+    </section>
+
+    <!-- ─────────── 6 ─────────── -->
+    <section id="nueva-trazabilidad">
+      <h2><span class="num">06</span> Nueva trazabilidad</h2>
+      <p class="resumen">Sacar la foto de la Carta de Porte. Con eso arranca todo.</p>
+
+      <ol class="pasos">
+        <li><code>/start</code> → <span class="boton">Nueva trazabilidad</span>.</li>
+        <li>Sacar la <b>foto de la Carta de Porte</b> y mandarla al chat.</li>
+        <li>El bot lee el papel y muestra lo que encontró: número de CPE, grano, campaña, pesos, dominios, chofer y establecimiento.</li>
+        <li>Revisar y confirmar. Ahí se crea la trazabilidad.</li>
+      </ol>
+
+      <p>
+        El identificador se arma solo, con el establecimiento, el grano y la campaña. Queda algo como
+        <code>1SM1-SES-2425</code>: es el código con el que ese grano se sigue de acá en adelante.
+      </p>
+
+      <div class="nota">
+        <span class="et">Si el grano ya tenía trazabilidad, no se crea otra</span>
+        Cuando llega un segundo camión con el <b>mismo grano</b>, del <b>mismo establecimiento</b> y
+        la <b>misma campaña</b>, el bot lo suma a la trazabilidad que ya existe y te avisa. Es lo
+        correcto: es el mismo lote de materia prima entrando en varios viajes.
+      </div>
+
+      <div class="alerta">
+        <span class="et">Sacar bien la foto</span>
+        Papel apoyado y plano, sin dobleces sobre los números. Luz pareja, sin sombra de la mano ni
+        reflejo del sol. Que entre la hoja entera. Si un dato sale mal leído, se puede corregir antes
+        de confirmar.
+      </div>
+    </section>
+
+    <!-- ─────────── 7 ─────────── -->
+    <section id="rgan38">
+      <h2><span class="num">07</span> Control de camión y calidad <span class="rgan">RGAN-38</span></h2>
+      <p class="resumen">Las dos partes de la recepción, una atrás de la otra.</p>
+
+      <h3>Parte 1 — Control del camión</h3>
+      <p>
+        Un checklist de estado del transporte, y si el camión se acepta o no. Incluye la revisión de
+        insectos vivos y el control de glifo.
+      </p>
+      <div class="limite">
+        <span class="et">Insectos vivos</span>
+        Si se detectan, el lote no sigue el camino normal: queda para tratamiento antes de poder
+        entrar. No es una observación al pasar — cambia el destino de la carga.
+      </div>
+
+      <h3>Parte 2 — Calidad de la materia prima</h3>
+      <p>
+        Pesos, humedad, zaranda, granos dañados y contaminación. Cierra con firma.
+      </p>
+
+      <div class="alerta">
+        <span class="et">El dato más importante de toda la recepción</span>
+        <b>Tipo de carga: Big Bag o Granel.</b> Es el único punto donde el sistema distingue una de
+        otra, y de eso depende cómo va a seguir el lote cuando entre a proceso. Si se elige mal, la
+        carga se desvía y no se corrige sin anular el evento.
+      </div>
+
+      <div class="nota">
+        <span class="et">Humedad fuera de norma</span>
+        El bot compara contra el límite del grano y marca en 🟡 cuando pasa el máximo, y en 🔴 con el
+        motivo cuando lo pasa por más de dos puntos, que es el punto de rechazo. Si el grano no tiene
+        límite cargado, lo dice — no inventa uno.
+      </div>
+    </section>
+
+    <!-- ─────────── 8 ─────────── -->
+    <section id="rgan39">
+      <h2><span class="num">08</span> Calidad de ingreso <span class="rgan">RGAN-39</span></h2>
+      <p class="resumen">El análisis de calidad por grano, con los defectos que corresponden a cada uno.</p>
+
+      <p>
+        Se elige la trazabilidad y se cargan kilos, humedad y los defectos. <b>Las preguntas cambian
+        según el grano</b>: el bot pregunta los campos que están definidos para sésamo, para mung o
+        para el poroto que sea. Termina eligiendo el destino y firmando.
+      </p>
+
+      <div class="nota">
+        <span class="et">La humedad no se pregunta dos veces</span>
+        Si ya se cargó en la recepción, el bot la reusa y saltea la pregunta. No es un olvido.
+      </div>
+    </section>
+
+    <!-- ─────────── 9 ─────────── -->
+    <section id="rgan55">
+      <h2><span class="num">09</span> Ingreso de materia prima <span class="rgan">RGAN-55</span></h2>
+      <p class="resumen">Los precintos y el peso de cada Big Bag.</p>
+
+      <ol class="pasos">
+        <li>Elegir la Carta de Porte.</li>
+        <li>Cargar cada precinto: número y peso.</li>
+        <li>Cuando no hay más, ir al resumen y firmar.</li>
+      </ol>
+      <p>El total lo suma el bot: no hace falta sacar la cuenta.</p>
+
+      <div class="nota">
+        <span class="et">El granel no pasa por acá</span>
+        Este formulario registra precintos, y el granel no tiene. Una carga a granel va directo de la
+        calidad al ingreso a proceso.
+      </div>
+    </section>
+
+    <!-- ─────────── 10 ─────────── -->
+    <section id="precarga">
+      <h2><span class="num">10</span> Precarga de precintos</h2>
+      <p class="resumen">Para cuando ves el precinto antes que el papel.</p>
+
+      <p>
+        Pasa seguido: los Big Bags llegan antes de que la Carta de Porte esté a mano. Con la precarga
+        se saca la foto de los precintos en el momento y se vincula a la CP después, sin perder el
+        dato ni tener que anotarlo en un papel.
+      </p>
+      <p>
+        La foto puede tener <b>varios precintos juntos</b>: el bot los lee todos y ofrece agregarlos
+        de una vez, avisando cuáles no pudo usar.
+      </p>
+    </section>
+
+    <!-- ─────────── 11 ─────────── -->
+    <section id="rgan41">
+      <h2><span class="num">11</span> Ingreso a proceso <span class="rgan">RGAN-41</span></h2>
+      <p class="resumen">Cuando el material entra a la línea.</p>
+
+      <p>
+        Se elige si es Big Bag o granel. En Big Bags, se marcan los precintos que entran —se pueden
+        buscar tipeando parte del número o mandando una <b>foto</b>—; en granel, se elige la Carta de
+        Porte y se cargan los kilos. Cierra con firma.
+      </p>
+      <p>Un precinto que ya entró a la línea no vuelve a ofrecerse.</p>
+
+      <div class="alerta">
+        <span class="et">Si cambia el grano, primero hay que limpiar</span>
+        Cuando el grano que entra es distinto del que la línea venía procesando, el bot <b>frena
+        antes de pedir el PIN</b> y dice de qué grano a qué grano es el cambio. Ofrece el botón
+        <span class="boton">🧹 Registrar limpieza ahora</span>.
+        <br><br>
+        <b>Ojo:</b> ir a la limpieza <b>cierra esta carga</b> y hay que rehacerla al volver. En
+        granel son tres pantallas y no duele; si estabas cargando cuarenta precintos, sí. Cuando
+        sepas que viene un cambio de grano, registrá la limpieza <b>antes</b> de empezar a cargar.
+      </div>
+    </section>
+
+    <!-- ─────────── 12 ─────────── -->
+    <section id="rgan40">
+      <h2><span class="num">12</span> Limpieza de planta <span class="rgan">RGAN-40</span></h2>
+      <p class="resumen">La purga del cambio de grano. Es lo que destraba el ingreso del grano nuevo.</p>
+
+      <p>
+        No se elige ningún lote: es una operación de la línea, y ocurre justamente entre un lote y el
+        siguiente. Se carga el material anterior, el que viene, los kilos de purga, y —sólo si se
+        viene de sésamo— el hisopado y el alcohol.
+      </p>
+
+      <div class="tabla-envoltura">
+        <table>
+          <thead><tr><th>Situación</th><th>Purga mínima</th><th>Hisopado y alcohol</th></tr></thead>
+          <tbody>
+            <tr><td>Cambio de grano común</td><td>4 toneladas</td><td>No se piden</td></tr>
+            <tr><td>El grano anterior fue sésamo</td><td>5 toneladas</td><td>Sí, en los tres sectores</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Los tres sectores de hisopado son <b>Clasificadora</b>, <b>Estoner</b> y <b>Embolse</b>. Se
+        marcan tocándolos; tocando de nuevo se destildan.
+      </p>
+
+      <div class="alerta">
+        <span class="et">El aviso de purga corta aparece en la pantalla siguiente</span>
+        Si cargás menos kilos que el mínimo, el bot no te lo rechaza en el momento: te lo avisa un
+        paso después. Es a propósito, porque el registro se guarda igual —la purga corta también es
+        evidencia—. Si te equivocaste, el botón <span class="boton">⬅️ Corregir el paso anterior</span>
+        te devuelve a la purga sin perder lo que ya marcaste.
+      </div>
+
+      <div class="limite">
+        <span class="et">Una limpieza con purga corta NO habilita el cambio de grano</span>
+        Queda registrada, pero marcada como no conforme. El ingreso a proceso del grano nuevo va a
+        seguir bloqueado hasta que haya una limpieza que cumpla el mínimo.
+      </div>
+    </section>
+
+    <!-- ─────────── 13 ─────────── -->
+    <section id="rgan80">
+      <h2><span class="num">13</span> Mantenimiento diario <span class="rgan">RGAN-80</span></h2>
+      <p class="resumen">Los 24 puntos de la línea, una vez por turno.</p>
+
+      <p>
+        Se elige el turno y se recorre el checklist. Cada punto se contesta ✅ OK o ❌ Problema; si es
+        problema, el bot pide la medida correctiva.
+      </p>
+
+      <div class="nota">
+        <span class="et">El atajo «Todo OK»</span>
+        Contestar 24 preguntas de a una en el teléfono es inusable. El botón
+        <span class="boton">⏩ Todo OK de acá en más</span> cierra los que faltan de una vez —y
+        <b>no pisa</b> los que ya contestaste: si marcaste uno con problema, sigue con problema.
+      </div>
+
+      <p>
+        Con <span class="boton">⬅️ Ítem anterior</span> se vuelve atrás a corregir una respuesta.
+      </p>
+
+      <div class="alerta">
+        <span class="et">Dos rarezas del formulario que no son errores</span>
+        Los elevadores van <b>1, 2, 4, 5 y 6</b>: en la planilla de papel <b>no existe el
+        «Elevador 3»</b>. Y el punto de <b>Control de Herramientas</b> se contesta Sí o No en vez de
+        OK o Problema, porque la planilla pide «Caja Completa SI/NO». Los ítems salen tal cual del
+        formulario impreso.
+      </div>
+    </section>
+
+    <!-- ─────────── 14 ─────────── -->
+    <section id="rgan53">
+      <h2><span class="num">14</span> Control de proceso <span class="rgan">RGAN-53</span></h2>
+      <p class="resumen">Las lecturas del turno. Y acá nace el lote de producción.</p>
+
+      <p>
+        Se elige el lote, el turno y se cargan las lecturas horarias: peso, humedad, pureza, detector
+        de metales e interrupciones. Cierra con la firma del Jefe de Turno.
+      </p>
+
+      <h3>La estiba</h3>
+      <p>
+        El bot ofrece dos caminos: <span class="boton">Seguir en la estiba abierta</span> o
+        <span class="boton">Abrir estiba nueva</span>. El primero es el habitual: <b>una estiba dura
+        varios turnos y varios días</b>. El rótulo se genera solo, con el formato
+        <code>AR-WSS-LE01-26</code>.
+      </p>
+
+      <div class="nota">
+        <span class="et">Este rótulo es la columna vertebral de todo lo que viene</span>
+        Lo arrastran el embolsado, el control de peso, el detector de metales, la liberación y el
+        despacho. Es el código del producto terminado, el que va a la etiqueta y el que permite
+        rastrear una bolsa hasta el campo de origen.
+      </div>
+
+      <div class="alerta">
+        <span class="et">Si el bot te pide escribir el rótulo a mano</span>
+        Es porque ese grano no tiene cargado su código de exportación. <b>No lo inventes:</b> avisá,
+        que se carga desde el panel en un minuto. Un rótulo inventado viaja hasta la liberación y el
+        despacho, y después no hay forma de saber a qué correspondía.
+      </div>
+    </section>
+
+    <!-- ─────────── 15 ─────────── -->
+    <section id="rgan61">
+      <h2><span class="num">15</span> Caídas de proceso <span class="rgan">RGAN-61</span></h2>
+      <p class="resumen">Descarte y basura del turno.</p>
+      <p>
+        Se elige el lote en proceso y se cargan los kilos de descarte y de basura, más una
+        observación si hace falta. No lleva firma.
+      </p>
+    </section>
+
+    <!-- ─────────── 16 ─────────── -->
+    <section id="rgan60">
+      <h2><span class="num">16</span> Reproceso <span class="rgan">RGAN-60</span></h2>
+      <p class="resumen">El material que vuelve a pasar por la línea.</p>
+      <p>
+        Se cargan los precintos con su peso, como en el ingreso de materia prima, y el bot suma el
+        total. Se puede mandar una <b>foto</b> como evidencia. Cierra con la firma del operario a cargo.
+      </p>
+      <div class="nota">
+        <span class="et">Los precintos de reproceso son rojos</span>
+        Y los del ingreso de materia prima, azules. El bot lo registra porque las dos series pueden
+        repetir el mismo número: sin el color, no se sabría cuál es cuál.
+      </div>
+    </section>
+
+    <!-- ─────────── 17 ─────────── -->
+    <section id="rgan57">
+      <h2><span class="num">17</span> Procesamiento de granos <span class="rgan">RGAN-57</span></h2>
+      <p class="resumen">El embolsado.</p>
+      <p>
+        Se elige la estiba, el tipo de envase, el lote de envases, la cantidad y el peso por unidad.
+        El bot calcula el total en kilos. Cierra con firma.
+      </p>
+    </section>
+
+    <!-- ─────────── 18 ─────────── -->
+    <section id="rgan42">
+      <h2><span class="num">18</span> Control de peso de bolsas <span class="rgan">RGAN-42</span></h2>
+      <p class="resumen">El pesaje de control, uno por mensaje.</p>
+      <p>
+        Se elige el lote y el tipo de bolsa —que define el peso mínimo—, la hora, y se van mandando
+        los pesos de a uno. Después se confirma si la etiqueta coincide y el número de pallet.
+      </p>
+
+      <div class="limite">
+        <span class="et">Una sola bolsa por debajo del mínimo retiene el lote entero</span>
+        No es el promedio: es <b>cada</b> peso. Si una sola queda corta, el lote pasa a RETENIDA y la
+        cadena se corta ahí hasta que calidad lo resuelva. Antes de mandar un peso, verificá que la
+        balanza esté bien y que leíste bien el número.
+      </div>
+    </section>
+
+    <!-- ─────────── 19 ─────────── -->
+    <section id="rgan81">
+      <h2><span class="num">19</span> PCC detector de metales <span class="rgan">RGAN-81</span></h2>
+      <p class="resumen">El punto crítico de control de inocuidad.</p>
+
+      <p>
+        Se elige el lote, el modo del scanner y la hora, y se hacen los <b>siete chequeos</b>: pipeta
+        ferrosa, no ferrosa e inoxidable, los tres imanes y el stoner. Se pueden cargar varias
+        lecturas en el turno. Al cerrar se anotan los desechos de imanes y stoner, y se firma.
+      </p>
+
+      <div class="limite">
+        <span class="et">Si un chequeo falla, el lote no avanza</span>
+        El registro se guarda igual —es la evidencia de que se detectó— pero el lote <b>no</b> pasa al
+        estado siguiente. Marcar ❌ cuando corresponde no es un problema: es exactamente para lo que
+        está el control. Marcar ✅ un chequeo que falló sí lo es.
+      </div>
+    </section>
+
+    <!-- ─────────── 20 ─────────── -->
+    <section id="rgan104">
+      <h2><span class="num">20</span> Liberación de producto <span class="rgan">RGAN-104</span></h2>
+      <p class="resumen">La autorización para consumo humano.</p>
+
+      <p>
+        Se marcan <b>uno o varios lotes</b> —el formulario de papel tiene cinco renglones— y se cargan
+        el producto, el cliente, el laboratorio, el número de informe y los tipos de análisis. Cierra
+        con firma.
+      </p>
+
+      <div class="limite">
+        <span class="et">El tilde que decide todo</span>
+        <b>Condición para consumo humano.</b> Si va en APTO, los lotes quedan liberados y pueden
+        despacharse. Si va en NO APTO, quedan bloqueados. Es el punto de no retorno de la cadena.
+      </div>
+    </section>
+
+    <!-- ─────────── 21 ─────────── -->
+    <section id="rgan56">
+      <h2><span class="num">21</span> Registro de despacho <span class="rgan">RGAN-56</span></h2>
+      <p class="resumen">La salida de planta. Cierra la cadena.</p>
+
+      <p>
+        Se marcan los lotes que salen, el número de remito, el cliente, el lugar de entrega, el
+        transporte, el chofer y las patentes, y las unidades de cada lote. Las patentes se pueden
+        escribir en minúscula: el bot las normaliza.
+      </p>
+
+      <div class="nota">
+        <span class="et">Un lote puede salir en varios remitos</span>
+        El despacho parcial está previsto. Los lotes que ya salieron antes aparecen marcados con 🚛 y
+        se pueden volver a elegir.
+      </div>
+
+      <div class="alerta">
+        <span class="et">Si repetís un número de remito, el bot avisa</span>
+        Te muestra el despacho anterior con su fecha, cliente y kilos, y te deja seguir igual —a veces
+        el mismo remito cubre dos salidas—. Pero si fue un error de tipeo, ese es el momento de
+        corregirlo.
+      </div>
+    </section>
+
+    <!-- ─────────── 22 ─────────── -->
+    <section id="gestiones">
+      <h2><span class="num">22</span> Gestiones y PIN</h2>
+      <p class="resumen">Crear o cambiar tu PIN.</p>
+      <p>
+        Desde <span class="boton">Gestiones</span> en el menú. El mensaje con el PIN se borra solo del
+        chat apenas se lee. Si lo olvidaste, un administrador lo reinicia desde el panel y el bot te
+        va a pedir uno nuevo la próxima vez que firmes.
+      </p>
+    </section>
+
+    <!-- ─────────── 23 ─────────── -->
+    <section id="problemas">
+      <h2><span class="num">23</span> Cuando algo sale mal</h2>
+      <p class="resumen">Los casos que más aparecen, y qué hacer.</p>
+
+      <div class="tabla-envoltura">
+        <table>
+          <thead><tr><th>Lo que pasa</th><th>Qué hacer</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Me equivoqué en un dato y todavía no firmé</td>
+              <td>Buscá el botón de volver atrás si el formulario lo tiene; si no, <code>/cancelar</code> y empezá de nuevo. No se guardó nada.</td>
+            </tr>
+            <tr>
+              <td>Me equivoqué y <b>ya firmé</b></td>
+              <td>Avisá a quien administra el panel: se anula o se corrige desde ahí, con motivo. No se puede deshacer desde el bot.</td>
+            </tr>
+            <tr>
+              <td>Perdí lo que estaba cargando</td>
+              <td>Lo más probable es que hayas abierto otro formulario en el medio. El bot recuerda una sola carga por vez. Hay que rehacerla.</td>
+            </tr>
+            <tr>
+              <td>El OCR leyó mal la Carta de Porte</td>
+              <td>Corregí el dato antes de confirmar. Si salieron varios mal, mejor sacar la foto de nuevo con más luz.</td>
+            </tr>
+            <tr>
+              <td>El bot no me deja entrar a proceso</td>
+              <td>Leé el mensaje: casi siempre es el cambio de grano pidiendo la limpieza. El botón para registrarla está ahí mismo.</td>
+            </tr>
+            <tr>
+              <td>No veo un formulario en el menú</td>
+              <td>Es el permiso de tu rol. Lo habilita un administrador desde el panel.</td>
+            </tr>
+            <tr>
+              <td>El bot no responde</td>
+              <td>Probá <code>/start</code>. Si sigue sin responder, avisá: puede ser un problema del servidor, no de tu teléfono.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─────────── 24 ─────────── -->
+    <section id="limites">
+      <h2><span class="num">24</span> Lo que todavía no hace</h2>
+      <p class="resumen">Para que no se confunda con una falla.</p>
+
+      <div class="limite">
+        <span class="et">Las fotos no quedan como documento</span>
+        Las que mandás por el chat quedan guardadas como una referencia a un archivo de Telegram. No
+        se pueden abrir desde el panel ni sirven como respaldo formal. Falta conectar el
+        almacenamiento de archivos.
+      </div>
+
+      <div class="limite">
+        <span class="et">No se puede adjuntar un PDF</span>
+        Ni el informe del laboratorio, ni el remito escaneado. Los datos del análisis se cargan
+        —laboratorio, número de informe, tipo— pero el archivo no.
+      </div>
+
+      <div class="limite">
+        <span class="et">Falta la segunda firma de las planillas de planta</span>
+        Ver la sección <a href="#firma">Firmar un documento</a>.
+      </div>
+
+      <div class="limite">
+        <span class="et">Formularios todavía no construidos</span>
+        Control de Producto Final, Checklist de Carga, Análisis de Caídas por turno, Orden del Día,
+        Envío de Muestras y el registro de Detector Fallido.
+      </div>
+    </section>
+
+    <!-- ─────────── 25 ─────────── -->
+    <section id="faq">
+      <h2><span class="num">25</span> Preguntas frecuentes</h2>
+
+      <h3>¿Puedo cargar sin señal?</h3>
+      <p>
+        No. El bot necesita internet para responder. Si estás en una zona sin señal, anotá y cargá
+        cuando vuelvas — pero cargá lo antes posible, porque la hora del registro es la del momento
+        en que lo hacés.
+      </p>
+
+      <h3>¿Puedo usar el bot desde la computadora?</h3>
+      <p>Sí, con Telegram Web o de escritorio. Funciona igual, salvo sacar fotos.</p>
+
+      <h3>Cargué algo y no aparece en el panel.</h3>
+      <p>
+        El panel se actualiza solo cada 30 segundos. Si después de eso no está, lo más probable es
+        que la carga no se haya completado: sin la firma, no se guarda nada.
+      </p>
+
+      <h3>¿Por qué me pide el PIN tantas veces?</h3>
+      <p>
+        Una vez por documento firmado. Cada firma respalda un documento distinto: no es una sesión
+        que se mantiene abierta.
+      </p>
+
+      <h3>Otro compañero empezó una carga y no está. ¿La puedo continuar?</h3>
+      <p>
+        No la que quedó a medias en su chat, porque cada carga vive en el chat de quien la empezó.
+        Pero sí podés hacer el registro completo vos: el trabajo pendiente no está atado a la persona
+        que lo inició.
+      </p>
+
+      <h3>¿Puedo imprimir este manual?</h3>
+      <p>
+        Sí. <code>Ctrl+P</code> (o <code>⌘P</code>) da una versión limpia sin el índice, lista para
+        imprimir en A4 o guardar como PDF.
+      </p>
+    </section>
+
+    <p class="pie">
+      ADD Tracker · Anta del Dorado S.A. · Manual del bot de Telegram, versión 2.0 — 10 de septiembre de 2026.<br>
+      Existe también un manual del panel web, que es donde se consulta y se audita lo que se carga acá.
+    </p>
+
+  </main>
+</div>
+
+<button class="abrir-indice" id="abrir-indice" type="button" aria-controls="indice">☰ Índice</button>
+
+<script>
+  (function () {
+    var indice = document.getElementById("indice");
+    var enlaces = Array.prototype.slice.call(indice.querySelectorAll("a[href^='#']"));
+    var secciones = enlaces
+      .map(function (a) { return document.getElementById(a.getAttribute("href").slice(1)); })
+      .filter(Boolean);
+
+    function marcar() {
+      var corte = window.scrollY + window.innerHeight * 0.28;
+      var activa = secciones[0];
+      for (var i = 0; i < secciones.length; i++) {
+        if (secciones[i].offsetTop <= corte) activa = secciones[i];
+      }
+      enlaces.forEach(function (a) {
+        a.classList.toggle("activo", a.getAttribute("href") === "#" + activa.id);
+      });
+    }
+    var pendiente = false;
+    window.addEventListener("scroll", function () {
+      if (pendiente) return;
+      pendiente = true;
+      requestAnimationFrame(function () { marcar(); pendiente = false; });
+    }, { passive: true });
+    marcar();
+
+    var buscador = document.getElementById("buscador");
+    buscador.addEventListener("input", function () {
+      var q = buscador.value.trim().toLowerCase();
+      enlaces.forEach(function (a) {
+        a.hidden = q.length > 0 && a.textContent.toLowerCase().indexOf(q) === -1;
+      });
+      Array.prototype.slice.call(indice.querySelectorAll(".grupo")).forEach(function (g) {
+        var visible = false, n = g.nextElementSibling;
+        while (n && !n.classList.contains("grupo")) {
+          if (n.tagName === "A" && !n.hidden) visible = true;
+          n = n.nextElementSibling;
+        }
+        g.hidden = !visible;
+      });
+    });
+
+    var boton = document.getElementById("abrir-indice");
+    boton.addEventListener("click", function () { indice.classList.toggle("abierto"); });
+    indice.addEventListener("click", function (ev) {
+      if (ev.target.tagName === "A") indice.classList.remove("abierto");
+    });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") indice.classList.remove("abierto");
+    });
+  })();
+</script>
+
+</body>
+</html>
