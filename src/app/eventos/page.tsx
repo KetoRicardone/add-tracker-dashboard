@@ -12,7 +12,22 @@ import { puede } from "@/lib/permisos";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-async function getEventos(): Promise<(TrazEvento & { trazabilidad_id: string; codigo_grano: string; campania: string })[]> {
+/**
+ * Un evento tal como lo devuelve /api/eventos: los de lote y los de planta
+ * mezclados y ordenados por fecha. Los de planta (RGAN-40, RGAN-80) traen
+ * `trazabilidad_id` en null — no cuelgan de ningún lote (ADR-001) — así que
+ * no se puede linkear a la ficha de una trazabilidad.
+ */
+type EventoListado = TrazEvento & {
+  trazabilidad_id: string | null;
+  codigo_grano: string | null;
+  campania: string | null;
+  ambito?: "LOTE" | "PLANTA";
+  planta_codigo?: string | null;
+  turno?: string | null;
+};
+
+async function getEventos(): Promise<EventoListado[]> {
   try {
     const h = headers();
     const host = h.get("host") || "localhost:3000";
@@ -40,6 +55,16 @@ export default async function EventosPage() {
   const hoy = new Date().toISOString().split("T")[0];
   const eventosHoy = eventos.filter((e) => e.fecha?.startsWith(hoy));
 
+  /**
+   * Subtítulo de la fila. Un evento de lote se identifica por su trazabilidad y
+   * su grano; uno de planta, por la planta y el turno — no tiene ninguno de los
+   * otros dos.
+   */
+  const contexto = (evt: EventoListado) =>
+    evt.ambito === "PLANTA"
+      ? [evt.planta_codigo, evt.turno ? `Turno ${evt.turno}` : null].filter(Boolean).join(" · ")
+      : `${evt.trazabilidad_id} · ${GRAIN_NAMES[evt.codigo_grano || ""] || evt.codigo_grano}`;
+
   return (
     <div className="space-y-6">
       <div>
@@ -64,28 +89,48 @@ export default async function EventosPage() {
           <div className="space-y-1">
             {eventosHoy.map((evt) => {
               const def = EVENT_DEFINITIONS.find((d) => d.tipo_evento === evt.tipo_evento);
-              return (
-                <Link
-                  key={evt.evento_id}
-                  href={`/trazabilidad/${evt.trazabilidad_id}`}
-                  className="flex items-center gap-3 rounded-lg p-3 hover:bg-secondary/50 transition-colors group"
-                >
-                  <div className="h-2 w-2 rounded-full bg-success flex-shrink-0" />
+              const esPlanta = evt.ambito === "PLANTA";
+              const cuerpo = (
+                <>
+                  <div
+                    className={`h-2 w-2 rounded-full flex-shrink-0 ${
+                      esPlanta ? "bg-muted-foreground" : "bg-success"
+                    }`}
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{def?.nombre || evt.tipo_evento}</span>
                       <span className="text-xs text-muted-foreground font-mono">
                         {def?.rgan}
                       </span>
+                      {esPlanta && (
+                        <span className="text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 bg-secondary text-muted-foreground">
+                          Planta
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {evt.trazabilidad_id} · {GRAIN_NAMES[evt.codigo_grano] || evt.codigo_grano}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{contexto(evt)}</p>
                   </div>
                   <div className="text-xs text-muted-foreground text-right">
                     <p>{formatDate(evt.fecha)?.split(",")[1]?.trim() || formatDate(evt.fecha)}</p>
                     <p className="text-[10px]">{evt.responsable}</p>
                   </div>
+                </>
+              );
+
+              // Sin lote no hay ficha a la que ir: la fila se muestra igual pero
+              // no es un link muerto a /trazabilidad/null.
+              return esPlanta ? (
+                <div key={evt.evento_id} className="flex items-center gap-3 rounded-lg p-3">
+                  {cuerpo}
+                </div>
+              ) : (
+                <Link
+                  key={evt.evento_id}
+                  href={`/trazabilidad/${evt.trazabilidad_id}`}
+                  className="flex items-center gap-3 rounded-lg p-3 hover:bg-secondary/50 transition-colors group"
+                >
+                  {cuerpo}
                   <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               );
@@ -107,22 +152,33 @@ export default async function EventosPage() {
           <div className="space-y-0.5">
             {eventos.slice(0, 100).map((evt) => {
               const def = EVENT_DEFINITIONS.find((d) => d.tipo_evento === evt.tipo_evento);
-              return (
+              const esPlanta = evt.ambito === "PLANTA";
+              const cuerpo = (
+                <>
+                  <div
+                    className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${
+                      esPlanta ? "bg-muted-foreground/60" : "bg-primary/60"
+                    }`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm">{def?.nombre || evt.tipo_evento}</span>
+                    <span className="text-xs text-muted-foreground ml-2">{contexto(evt)}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{formatDate(evt.fecha)}</span>
+                </>
+              );
+
+              return esPlanta ? (
+                <div key={evt.evento_id} className="flex items-center gap-3 rounded-lg p-2.5">
+                  {cuerpo}
+                </div>
+              ) : (
                 <Link
                   key={evt.evento_id}
                   href={`/trazabilidad/${evt.trazabilidad_id}`}
                   className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-secondary/30 transition-colors group"
                 >
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary/60 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm">{def?.nombre || evt.tipo_evento}</span>
-                    <span className="text-xs text-muted-foreground ml-2">
-                      {evt.trazabilidad_id}
-                    </span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDate(evt.fecha)}
-                  </span>
+                  {cuerpo}
                 </Link>
               );
             })}

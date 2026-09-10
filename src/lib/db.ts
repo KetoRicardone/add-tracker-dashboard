@@ -66,6 +66,28 @@ export async function tableHasColumn(table: string, column: string): Promise<boo
   }
 }
 
+// Mismo criterio que colCache, a nivel tabla: los eventos de planta viven en
+// traz_eventos_planta (F0_030) y el panel tiene que seguir funcionando en una
+// base donde esa migración todavía no corrió.
+const tablaCache = new Map<string, boolean>();
+export async function tableExists(table: string): Promise<boolean> {
+  if (tablaCache.has(table)) return tablaCache.get(table)!;
+  try {
+    const rows = await query<{ exists: boolean }>(
+      `SELECT EXISTS (
+         SELECT 1 FROM information_schema.tables
+         WHERE table_schema = 'public' AND table_name = $1
+       ) AS exists`,
+      [table]
+    );
+    const exists = !!rows[0]?.exists;
+    tablaCache.set(table, exists);
+    return exists;
+  } catch {
+    return false;
+  }
+}
+
 /** Filtro SQL para excluir eventos anulados/supersedidos (si el esquema lo soporta). */
 export async function vigenteFilter(alias = "e"): Promise<string> {
   const has = await tableHasColumn("traz_eventos", "estado_evento");

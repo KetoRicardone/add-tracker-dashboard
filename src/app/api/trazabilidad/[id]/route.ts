@@ -49,6 +49,7 @@ export async function GET(
       resultado: string;
       responsable: string;
       datos: Record<string, unknown>;
+      firma_auditoria_id: string | null;
     }>(
       `SELECT
         e.evento_id,
@@ -56,7 +57,8 @@ export async function GET(
         e.fecha_hora_evento AS fecha,
         e.resultado,
         e.responsable_nombre AS responsable,
-        e.datos_evento AS datos
+        e.datos_evento AS datos,
+        e.firma_auditoria_id
       FROM traz_eventos e
       WHERE e.trazabilidad_id = $1${vig}
       ORDER BY e.fecha_hora_evento`,
@@ -69,11 +71,13 @@ export async function GET(
       firmante: string;
       evento_tipo: string;
       fecha: string;
+      auditoria_id: string;
     }>(
       `SELECT
         COALESCE(metadata->>'usuario', u.nombre, 'Usuario') AS firmante,
         evento_tipo,
-        fecha
+        fecha,
+        af.auditoria_id
       FROM auditoria_firmas af
       LEFT JOIN usuarios u ON u.usuario_id = af.usuario_id
       WHERE af.trazabilidad_id::text = $1

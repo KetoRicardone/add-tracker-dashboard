@@ -73,7 +73,10 @@ export function EventCompactRow({ evt, def, isOK, canEdit = false, actorNombre =
             <span>🕑 {formatDate(evt.fecha)}</span>
             <ResultBadge resultado={evt.resultado} />
             {firmante && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 font-medium text-primary">
+              <span
+                className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 font-medium text-primary"
+                title="Firma vinculada a este evento (firma_auditoria_id)"
+              >
                 <PenLine className="h-3 w-3" />Firmado por {firmante}
               </span>
             )}

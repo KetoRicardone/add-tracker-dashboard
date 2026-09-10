@@ -23,6 +23,12 @@ function isJunk(v: unknown): boolean {
   return typeof v === "string" && JUNK_VALUES.has(v.trim().toLowerCase());
 }
 
+// Listas de identificadores opacos: el file_id de Telegram no le dice nada a
+// nadie y volcarlo llena la ficha de ruido. Se muestra cuántos hay.
+// Deuda ADR-012: cuando los adjuntos pasen por `documentos` esto se reemplaza
+// por miniaturas con su hash.
+const ID_LIST_KEYS = new Set(["fotos_evidencia"]);
+
 // Boolean maps donde `true` es una alerta (no un "OK").
 const FLAG_WHEN_TRUE = new Set(["respuestas_contaminacion"]);
 
@@ -164,7 +170,8 @@ function partition(obj: Record<string, unknown>) {
     else if (typeof v === "boolean") scalars.push([k, v ? "Sí" : "No"]);
     else if (Array.isArray(v)) {
       if (v.length === 0) continue;
-      if (v.every(isPlainObject)) lists.push([k, v as Record<string, unknown>[]]);
+      if (ID_LIST_KEYS.has(k)) scalars.push([k, `${v.length} ${v.length === 1 ? "archivo" : "archivos"}`]);
+      else if (v.every(isPlainObject)) lists.push([k, v as Record<string, unknown>[]]);
       else scalars.push([k, v.join(", ")]);
     } else if (isPlainObject(v)) nested.push([k, v]);
     else if (v !== null && v !== undefined && v !== "") scalars.push([k, v]);

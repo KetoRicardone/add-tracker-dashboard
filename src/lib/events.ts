@@ -89,6 +89,30 @@ export const EVENT_DEFINITIONS: EventDefinition[] = [
     icon: "Repeat",
     gate: false,
   },
+  // Los dos que siguen son de PLANTA, no de lote: ocurren entre lotes (limpieza
+  // por cambio de grano) o por turno (mantenimiento diario). No suman al
+  // progreso de ninguna trazabilidad; se listan aparte en /eventos.
+  {
+    tipo_evento: "EV_LIMPIEZA_PLANTA",
+    rgan: "RGAN-40",
+    fase: 2,
+    nombre: "Limpieza de Planta",
+    descripcion:
+      "Control de limpieza por cambio de grano: purga, y — sólo al salir de sésamo — hisopado y alcohol",
+    icon: "Sparkles",
+    gate: true,
+    ambito: "PLANTA",
+  },
+  {
+    tipo_evento: "EV_CHECKLIST_MANTENIMIENTO",
+    rgan: "RGAN-80",
+    fase: 2,
+    nombre: "Mantenimiento Diario",
+    descripcion: "Checklist de mantenimiento y limpieza por turno: 24 puntos de la línea",
+    icon: "Wrench",
+    gate: false,
+    ambito: "PLANTA",
+  },
   // FASE 3 — Embolsado + PCC + Liberación
   {
     tipo_evento: "EV_PRODUCCION_ENVASADO",

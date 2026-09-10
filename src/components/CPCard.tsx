@@ -5,6 +5,7 @@ import { TrazEvento, Firma, EventDefinition, ConsumoCP } from "@/lib/types";
 import { buildEventGroups, defForEvent, GROUP_FIRMA_EVENTO, stepKey, stepKeyForEvent } from "@/lib/events";
 import { formatDate, cn } from "@/lib/utils";
 import { emojiForIcon } from "@/lib/eventMeta";
+import type { FirmaDeEvento } from "@/lib/firmas";
 import { DataBadge } from "./DataBadge";
 import { EventCompactRow } from "./EventCompactRow";
 import { CpAnularButton } from "./CpAnularButton";
@@ -44,7 +45,7 @@ function ConsumoBigBags({ consumo }: { consumo: ConsumoCP }) {
   );
 }
 
-export function CPCard({ cpe, evts, ocrEvt, defs, consumo, firmas = [], trazabilidadId, canEdit = false, actorNombre = "", humedadMaxGrano = null }: {
+export function CPCard({ cpe, evts, ocrEvt, defs, consumo, firmas = [], firmasPorEvento, trazabilidadId, canEdit = false, actorNombre = "", humedadMaxGrano = null }: {
   cpe: string;
   evts: TrazEvento[];
   ocrEvt?: TrazEvento;
@@ -53,6 +54,8 @@ export function CPCard({ cpe, evts, ocrEvt, defs, consumo, firmas = [], trazabil
   /** Big bags recibidos vs. ya ingresados a proceso. Ausente si la CP no tiene RGAN-55. */
   consumo?: ConsumoCP;
   firmas?: Firma[];
+  /** evento_id → firma que lo cerró (ver lib/firmas.ts). */
+  firmasPorEvento?: Map<string, FirmaDeEvento>;
   trazabilidadId: string;
   canEdit?: boolean;
   actorNombre?: string;
@@ -199,7 +202,7 @@ export function CPCard({ cpe, evts, ocrEvt, defs, consumo, firmas = [], trazabil
           return group.evts.map((evt) => {
             const def = defForEvent(evt);
             const isOK = evt.resultado === "OK" || evt.resultado === "APROBADO";
-            const firma = firmas.find((f) => f.evento_tipo === evt.tipo_evento);
+            const firma = firmasPorEvento?.get(evt.evento_id);
             return <EventCompactRow key={evt.evento_id} evt={evt} def={def} isOK={isOK} canEdit={canEdit} actorNombre={actorNombre} firmante={firma?.firmante} humedadMaxGrano={humedadMaxGrano} />;
           });
         })}

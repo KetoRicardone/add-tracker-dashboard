@@ -20,6 +20,8 @@ export const EVENT_EMOJI: Record<string, string> = {
   Ship: "🚢",
   ClipboardCheck: "📋",
   Boxes: "📥",
+  Sparkles: "🧹",
+  Wrench: "🔧",
 };
 
 export function emojiForIcon(icon?: string): string {
@@ -39,6 +41,14 @@ export const FIRMA_EVENTO_LABEL: Record<string, string> = {
   EV_INGRESO_MP_DETALLE: "RGAN-55 — Ingreso de MP",
   EV_CONTROL_PROCESO: "RGAN-53 — Control de Proceso",
   EV_REPROCESO: "RGAN-60 — Reproceso",
+  EV_INGRESO_A_PROCESO: "RGAN-41 — Ingreso a Procesamiento",
+  EV_PRODUCCION_ENVASADO: "RGAN-57 — Procesamiento de Granos",
+  EV_CONTROL_PESO_BOLSAS: "RGAN-42 — Control de Peso de Bolsas",
+  EV_PCC_DETECTOR_METALES: "RGAN-81 — PCC Detector de Metales",
+  EV_LIBERACION_PRODUCTO: "RGAN-104 — Liberación de Producto",
+  EV_REMITO_DESPACHO: "RGAN-56 — Registro de Despacho",
+  EV_LIMPIEZA_PLANTA: "RGAN-40 — Limpieza de Planta",
+  EV_CHECKLIST_MANTENIMIENTO: "RGAN-80 — Mantenimiento Diario",
 };
 
 export function firmaEventoLabel(tipo?: string | null): string {
@@ -172,6 +182,76 @@ const FIELD_LABELS: Record<string, string> = {
   basura_kg: "Basura",
   total_caida_kg: "Caída total",
   observacion: "Observación",
+  // RGAN-57 Procesamiento de Granos (embolse)
+  lote_produccion: "Lote de producción",
+  tipo_envase: "Tipo de envase",
+  lote_bolsas: "Lote de bolsas",
+  cantidad_bolsas: "Cantidad de bolsas",
+  peso_bolsa_kg: "Peso por bolsa",
+  kg_totales: "Kg totales",
+  // RGAN-42 Control de Peso de Bolsas
+  tipo_bolsa: "Tipo de bolsa",
+  peso_minimo_kg: "Peso mínimo aceptable",
+  pesos: "Pesos controlados",
+  pesos_bajo_minimo: "Pesos bajo el mínimo",
+  cantidad_pesos: "Bolsas pesadas",
+  etiqueta_coincide: "Etiqueta coincide con el lote",
+  nro_pallet: "Nº de pallet",
+  resultado_control: "Resultado del control",
+  // RGAN-81 PCC Detector de Metales
+  establecimiento: "Establecimiento",
+  modo_scanner: "Control Scanner D.M",
+  lecturas_con_falla: "Lecturas con problema",
+  desechos_imanes: "Desechos en imanes",
+  desechos_stoner: "Desechos en stoner",
+  resultado_pcc: "Resultado del PCC",
+  incidencia: "Descripción de incidencia",
+  accion_correctiva: "Acción correctiva",
+  fallas: "Equipos con problema",
+  // RGAN-40 Limpieza de Planta (evento de planta)
+  plan: "Plan",
+  material_anterior: "Material anterior",
+  material_siguiente: "Material siguiente",
+  purga_tn: "Purga (tn)",
+  purga_tn_minimo: "Purga mínima exigida (tn)",
+  cambio_desde_alergeno: "Venía de sésamo (alérgeno)",
+  sectores_hisopado: "Sectores hisopados",
+  alcohol: "Alcohol aplicado",
+  verificado_por: "Verificado por",
+  // RGAN-80 Checklist de Mantenimiento Diario (evento de planta)
+  // `turno` ya está etiquetado más arriba (lo usa RGAN-53).
+  version_planilla: "Versión de planilla",
+  items: "Puntos controlados",
+  items_total: "Puntos controlados",
+  items_con_problema: "Puntos con problema",
+  // RGAN-104 Liberación de Producto
+  liberacion_id: "Liberación",
+  producto: "Producto",
+  contrato_po: "Contrato / PO",
+  cliente_destino: "Cliente destino",
+  laboratorio: "Laboratorio",
+  informe_nro: "Informe Nº",
+  tipo_analisis: "Tipo de análisis",
+  validacion_etiqueta: "Etiqueta validada",
+  empaque: "Empaque",
+  kg_total: "Kg totales",
+  condicion_consumo_humano: "Apto para consumo humano",
+  lotes_en_la_liberacion: "Lotes que cubre la liberación",
+  // RGAN-56 Registro de Despacho
+  despacho_id: "Despacho",
+  kg: "Kg de este lote",
+  remito_nro: "Remito Nº",
+  lugar_entrega: "Lugar de entrega",
+  chofer_nombre: "Chofer",
+  chofer_documento: "Documento del chofer",
+  patente_tractor: "Patente (tractor)",
+  patente_acoplado: "Patente (acoplado)",
+  peso_unitario_kg: "Peso por unidad",
+  unidades: "Unidades de este lote",
+  unidades_total: "Unidades del remito",
+  lotes_en_el_despacho: "Lotes que cubre el remito",
+  // Evidencia fotografica (Etapa 1.3): file_id de Telegram, no se listan
+  fotos_evidencia: "Fotos de evidencia",
 };
 
 /** snake_case → "Texto Legible" (con diccionario por excepciones) */
@@ -187,7 +267,8 @@ export function humanizeKey(key: string): string {
 /** Devuelve unidad para un campo, si aplica */
 export function unitForKey(key: string): string {
   if (key.endsWith("_pct")) return "%";
-  if (key.endsWith("_kg") || key.startsWith("peso")) return "kg";
+  // "kg" pelado existe en RGAN-56: son los kilos de ESE lote dentro del remito.
+  if (key === "kg" || key.endsWith("_kg") || key.startsWith("kg_") || key.startsWith("peso")) return "kg";
   return "";
 }
 
@@ -198,6 +279,42 @@ export function formatScalar(key: string, value: unknown): string {
     const g = String(value).toUpperCase();
     if (g === "CON") return "Con Glifo";
     if (g === "SIN") return "Sin Glifo";
+  }
+  if (key === "tipo_analisis") {
+    // Llega como lista ya unida por la vista; se traduce token por token.
+    const t: Record<string, string> = {
+      PESTICIDAS: "Pesticidas",
+      MICROBIOLOGICOS: "Microbiológicos",
+      FISICO_QUIMICOS: "Físico-químicos",
+    };
+    return String(value).split(",").map((x) => t[x.trim().toUpperCase()] || x.trim()).join(", ");
+  }
+  if (key === "empaque") {
+    const e = String(value).toUpperCase();
+    if (e === "BOLSA") return "Bolsas";
+    if (e === "BIG_BAG") return "Big Bags";
+  }
+  if (key === "modo_scanner") {
+    const t = String(value).toUpperCase();
+    if (t === "CINTA") return "Cinta";
+    if (t === "CONTINUO") return "Continuo";
+  }
+  if (key === "tipo_bolsa") {
+    // Los valores salen de los casilleros preimpresos del formulario RGAN-42.
+    const t: Record<string, string> = {
+      PAPEL_KRAFT: "Papel Kraft",
+      POLIPROPILENO_25: "Polipropileno 25 kg",
+      POLIPROPILENO_50: "Polipropileno 50 kg",
+      POLI_LAMINADO: "Poli laminado",
+      BIG_BAG: "Big Bag",
+    };
+    const v = t[String(value).toUpperCase()];
+    if (v) return v;
+  }
+  if (key === "tipo_envase") {
+    const t = String(value).toUpperCase();
+    if (t === "BOLSA") return "Bolsas";
+    if (t === "BIG_BAG") return "Big Bags";
   }
   if (key === "tipo_ingreso") {
     const t = String(value).toUpperCase();

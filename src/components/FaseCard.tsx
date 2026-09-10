@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { TrazEvento, Firma, EventDefinition } from "@/lib/types";
+import { TrazEvento, EventDefinition } from "@/lib/types";
 import { defForEvent, stepKey, stepKeyForEvent } from "@/lib/events";
 import { formatDate, cn } from "@/lib/utils";
 import { emojiForIcon } from "@/lib/eventMeta";
+import type { FirmaDeEvento } from "@/lib/firmas";
 import { EventCompactRow } from "./EventCompactRow";
 import { CheckCircle2, ChevronDown, Circle, Factory, PenLine, Ship, ShieldAlert } from "lucide-react";
 
@@ -70,14 +71,15 @@ function resumenCorrida(evts: TrazEvento[]) {
  * Desde el ingreso a proceso la CP deja de ser la unidad: la línea se arma por
  * establecimiento y grano, y el control de proceso es del turno.
  */
-export function FaseCard({ titulo, subtitulo, variante, evts, defs, firmas = [], canEdit = false, actorNombre = "", humedadMaxGrano = null }: {
+export function FaseCard({ titulo, subtitulo, variante, evts, defs, firmasPorEvento, canEdit = false, actorNombre = "", humedadMaxGrano = null }: {
   titulo: string;
   subtitulo: string;
   variante: "proceso" | "salida";
   evts: TrazEvento[];
   /** Pasos del circuito que esta tarjeta cubre. */
   defs: EventDefinition[];
-  firmas?: Firma[];
+  /** evento_id → firma que lo cerró (ver lib/firmas.ts). */
+  firmasPorEvento?: Map<string, FirmaDeEvento>;
   canEdit?: boolean;
   actorNombre?: string;
   humedadMaxGrano?: number | null;
@@ -93,7 +95,7 @@ export function FaseCard({ titulo, subtitulo, variante, evts, defs, firmas = [],
   function filaEvento(evt: TrazEvento, etiqueta?: string) {
     const def = defForEvent(evt);
     const isOK = evt.resultado === "OK" || evt.resultado === "APROBADO";
-    const firma = firmas.find((f) => f.evento_tipo === evt.tipo_evento);
+    const firma = firmasPorEvento?.get(evt.evento_id);
     return (
       <EventCompactRow
         key={evt.evento_id}
@@ -142,7 +144,9 @@ export function FaseCard({ titulo, subtitulo, variante, evts, defs, firmas = [],
 
             const { bigBags, kg, cps } = resumenCorrida(bloque.evts);
             const def = defForEvent(bloque.evts[0]);
-            const firma = firmas.find((f) => f.evento_tipo === "EV_INGRESO_A_PROCESO");
+            // La corrida emite un evento por CP y una sola firma los cierra a
+            // todos: alcanza con la del primer evento del bloque que la tenga.
+            const firma = bloque.evts.map((e) => firmasPorEvento?.get(e.evento_id)).find(Boolean);
             return (
               <div key={`corrida-${bloque.fecha}`} className="rounded-lg border border-border/60 overflow-hidden">
                 <div className="flex items-center gap-2 px-3 py-2 text-xs font-medium bg-primary/10 flex-wrap">

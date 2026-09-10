@@ -1,5 +1,6 @@
 import { Trazabilidad, TrazEvento, ConsumoCP } from "@/lib/types";
 import { GRAIN_NAMES, defsForFase, faseForEvent } from "@/lib/events";
+import { asignarFirmas } from "@/lib/firmas";
 import { formatDate, cn } from "@/lib/utils";
 import { CPCard } from "@/components/CPCard";
 import { FaseCard } from "@/components/FaseCard";
@@ -141,6 +142,11 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
   const cpGroups = groupByCPE(eventosRecepcion, soleCPE);
   const consumoPorCP = calcularConsumo(traz.eventos, soleCPE);
 
+  // Qué firma cerró cada evento. Se resuelve una vez para todo el lote: el
+  // apareamiento de los eventos viejos (sin firma_auditoria_id) consume cada
+  // firma una sola vez y eso sólo funciona mirando la lista completa.
+  const firmasPorEvento = asignarFirmas(traz.eventos, traz.firmas || []);
+
   const defsRecepcion = defsForFase([1]);
   const defsProceso = defsForFase([2]);
   const defsSalida = defsForFase([3, 4]);
@@ -178,7 +184,7 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
         </div>
       </div>
 
-      <FirmasCard firmas={traz.firmas || []} />
+      <FirmasCard firmas={traz.firmas || []} eventos={traz.eventos} />
 
       <section className="space-y-3">
         <TituloSeccion nota={`${defsRecepcion.length} pasos por CP`}>Recepción — por Carta de Porte</TituloSeccion>
@@ -196,6 +202,7 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
                 defs={defsRecepcion}
                 consumo={consumoPorCP.get(cpe)}
                 firmas={traz.firmas || []}
+                firmasPorEvento={firmasPorEvento}
                 trazabilidadId={traz.trazabilidad_id}
                 canEdit={!!sesion}
                 actorNombre={sesion?.nombre || ""}
@@ -214,7 +221,7 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
           variante="proceso"
           evts={eventosProceso}
           defs={defsProceso}
-          firmas={traz.firmas || []}
+          firmasPorEvento={firmasPorEvento}
           canEdit={!!sesion}
           actorNombre={sesion?.nombre || ""}
           humedadMaxGrano={traz.humedad_pct_max ?? null}
@@ -225,7 +232,7 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
           variante="salida"
           evts={eventosSalida}
           defs={defsSalida}
-          firmas={traz.firmas || []}
+          firmasPorEvento={firmasPorEvento}
           canEdit={!!sesion}
           actorNombre={sesion?.nombre || ""}
           humedadMaxGrano={traz.humedad_pct_max ?? null}
