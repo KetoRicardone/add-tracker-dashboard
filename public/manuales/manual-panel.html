@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Manual del panel — ADD Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Documento para leer en pantalla e imprimir. Fondo blanco fijo a propósito:
+     no sigue el tema del sistema, porque un manual se imprime. */
+  :root {
+    --verde:      #38a935;
+    --verde-osc:  #2b7f29;
+    --verde-hoja: #689f38;
+    --verde-suave:#e8f5e9;
+    --teal:       #20b1aa;
+    --tinta:      #1c2321;
+    --gris:       #55605a;
+    --gris-2:     #8a938d;
+    --gris-claro: #f6f8f6;
+    --borde:      #e0e5e0;
+    --ambar:      #b7791f;
+    --ambar-bg:   #fdf6e7;
+    --rojo:       #c0392b;
+    --rojo-bg:    #fdeeec;
+    --sans: 'Roboto', 'Segoe UI', system-ui, sans-serif;
+    --display: 'Poppins', 'Segoe UI', sans-serif;
+    --mono: 'Roboto Mono', ui-monospace, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    color: var(--tinta);
+    background: #fff;
+    font-size: 15.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--verde-osc); }
+
+  /* ══ Estructura: índice fijo + contenido ══ */
+  .app { display: grid; grid-template-columns: 268px minmax(0, 1fr); gap: 0; }
+
+  .indice {
+    position: sticky; top: 0; align-self: start;
+    height: 100vh; overflow-y: auto;
+    border-right: 1px solid var(--borde);
+    background: var(--gris-claro);
+    padding: 22px 16px 40px;
+  }
+  .indice .marca {
+    display: flex; align-items: center; gap: 9px;
+    font-family: var(--display); font-weight: 700; font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .indice .marca .hoja {
+    width: 28px; height: 28px; border-radius: 8px; background: var(--verde);
+    color: #fff; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 15px;
+  }
+  .indice .marca-sub { font-size: 11.5px; color: var(--gris-2); margin: 0 0 16px 37px; }
+
+  .buscador {
+    width: 100%; font-family: var(--sans); font-size: 13px;
+    padding: 7px 10px; border: 1px solid var(--borde); border-radius: 7px;
+    background: #fff; color: var(--tinta); margin-bottom: 14px;
+  }
+  .buscador:focus { outline: 2px solid var(--verde); outline-offset: -1px; border-color: var(--verde); }
+
+  .indice .grupo {
+    font-family: var(--display); font-size: 10.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .09em; color: var(--gris-2);
+    margin: 16px 0 5px;
+  }
+  .indice a {
+    display: flex; gap: 8px; align-items: baseline;
+    padding: 5px 9px; border-radius: 6px;
+    font-size: 13.5px; color: var(--gris); text-decoration: none;
+    line-height: 1.35;
+  }
+  .indice a:hover { background: #fff; color: var(--tinta); }
+  .indice a.activo { background: var(--verde-suave); color: var(--verde-osc); font-weight: 500; }
+  .indice a .n {
+    font-family: var(--mono); font-size: 11px; color: var(--gris-2);
+    flex: 0 0 auto; min-width: 15px;
+  }
+  .indice a.activo .n { color: var(--verde-osc); }
+  .indice a[hidden] { display: none; }
+
+  main { max-width: 860px; padding: 0 40px 100px; }
+
+  /* ══ Portada ══ */
+  .portada { padding: 56px 0 30px; border-bottom: 2px solid var(--tinta); margin-bottom: 8px; }
+  .portada .cejilla {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--verde); margin-bottom: 12px;
+  }
+  .portada h1 {
+    font-family: var(--display); font-size: 40px; line-height: 1.08;
+    letter-spacing: -.02em; font-weight: 700; margin-bottom: 12px;
+  }
+  .portada .bajada { font-size: 17px; color: var(--gris); font-weight: 300; max-width: 60ch; }
+  .portada .meta {
+    margin-top: 22px; font-size: 12.5px; color: var(--gris-2);
+    display: flex; gap: 16px; flex-wrap: wrap;
+  }
+  .portada .meta b { color: var(--gris); font-weight: 500; }
+
+  /* ══ Secciones ══ */
+  section { padding-top: 34px; scroll-margin-top: 16px; }
+  h2 {
+    font-family: var(--display); font-size: 23px; font-weight: 600;
+    letter-spacing: -.015em; margin-bottom: 4px;
+    display: flex; align-items: baseline; gap: 11px;
+  }
+  h2 .num {
+    font-family: var(--mono); font-size: 13px; font-weight: 500;
+    color: var(--verde); flex: 0 0 auto;
+  }
+  h2 + .resumen {
+    color: var(--gris); font-size: 15px; margin-bottom: 14px;
+    padding-bottom: 12px; border-bottom: 1px solid var(--borde);
+  }
+  h3 {
+    font-family: var(--display); font-size: 15.5px; font-weight: 600;
+    color: var(--verde-hoja); margin: 20px 0 6px;
+  }
+  p { margin: 9px 0; }
+  ul, ol { margin: 9px 0 9px 22px; }
+  li { margin: 4px 0; }
+  code {
+    font-family: var(--mono); font-size: 13px;
+    background: var(--gris-claro); border: 1px solid var(--borde);
+    border-radius: 4px; padding: 0 4px;
+  }
+  b, strong { font-weight: 700; }
+
+  .boton {
+    display: inline-block; border: 1.5px solid var(--verde); border-radius: 7px;
+    padding: 0 8px; font-size: 13px; color: var(--verde-osc);
+    font-weight: 500; background: #f4fbf4; white-space: nowrap;
+    font-family: var(--display);
+  }
+
+  /* Avisos */
+  .nota, .alerta, .limite {
+    border-left: 3px solid; border-radius: 0 7px 7px 0;
+    padding: 10px 14px; margin: 14px 0; font-size: 14px;
+  }
+  .nota   { border-color: var(--teal);  background: #f1fbfa; }
+  .alerta { border-color: var(--ambar); background: var(--ambar-bg); }
+  .limite { border-color: var(--rojo);  background: var(--rojo-bg); }
+  .nota b, .alerta b, .limite b { display: inline; }
+  .limite .et, .alerta .et, .nota .et {
+    font-family: var(--display); font-size: 10.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .08em; display: block; margin-bottom: 3px;
+  }
+  .nota .et   { color: var(--teal); }
+  .alerta .et { color: var(--ambar); }
+  .limite .et { color: var(--rojo); }
+
+  /* Tablas */
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13.5px; }
+  th {
+    background: var(--verde); color: #fff; text-align: left;
+    padding: 7px 10px; font-family: var(--display); font-weight: 600; font-size: 12.5px;
+  }
+  td { padding: 7px 10px; border-bottom: 1px solid var(--borde); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--gris-claro); }
+  .tabla-envoltura { overflow-x: auto; }
+
+  /* Pasos numerados */
+  .pasos { list-style: none; margin: 12px 0; padding: 0; counter-reset: paso; }
+  .pasos li {
+    display: flex; gap: 11px; align-items: flex-start; margin: 9px 0;
+    counter-increment: paso;
+  }
+  .pasos li::before {
+    content: counter(paso);
+    flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--teal); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; margin-top: 2px;
+    font-family: var(--display);
+  }
+
+  .pie {
+    margin-top: 54px; padding-top: 18px; border-top: 1px solid var(--borde);
+    color: var(--gris-2); font-size: 12.5px;
+  }
+
+  /* Botón de índice en mobile */
+  .abrir-indice {
+    display: none; position: fixed; left: 14px; bottom: 14px; z-index: 40;
+    background: var(--verde); color: #fff; border: none; border-radius: 24px;
+    padding: 10px 18px; font-family: var(--display); font-weight: 600; font-size: 13.5px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.2); cursor: pointer;
+  }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .indice {
+      position: fixed; inset: 0 auto 0 0; width: 280px; z-index: 50;
+      transform: translateX(-100%); transition: transform .2s ease;
+      box-shadow: 0 0 40px rgba(0,0,0,.18);
+    }
+    .indice.abierto { transform: none; }
+    .abrir-indice { display: block; }
+    main { padding: 0 20px 100px; }
+    .portada h1 { font-size: 30px; }
+  }
+
+  @media print {
+    .indice, .abrir-indice { display: none !important; }
+    .app { display: block; }
+    main { max-width: none; padding: 0; }
+    body { font-size: 10.5pt; }
+    section { page-break-inside: auto; padding-top: 20px; }
+    h2 { page-break-after: avoid; font-size: 16pt; }
+    h3 { page-break-after: avoid; }
+    table, .nota, .alerta, .limite { page-break-inside: avoid; }
+    .portada { height: auto; page-break-after: always; padding-top: 0; }
+    a { color: var(--tinta); text-decoration: none; }
+    @page { size: A4; margin: 16mm 15mm; }
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ══════════════ ÍNDICE ══════════════ -->
+  <nav class="indice" id="indice" aria-label="Índice del manual">
+    <div class="marca"><span class="hoja">🌾</span> ADD Tracker</div>
+    <p class="marca-sub">Manual del panel web</p>
+
+    <input class="buscador" id="buscador" type="search" placeholder="Buscar en el índice…" aria-label="Buscar en el índice">
+
+    <div class="grupo">Para empezar</div>
+    <a href="#que-es"><span class="n">1</span> Qué es el panel</a>
+    <a href="#ingreso"><span class="n">2</span> Cómo se entra</a>
+    <a href="#conceptos"><span class="n">3</span> Cómo leer el sistema</a>
+
+    <div class="grupo">Torre de control</div>
+    <a href="#torre"><span class="n">4</span> Torre de control</a>
+    <a href="#trazabilidades"><span class="n">5</span> Trazabilidades</a>
+    <a href="#trazabilidad"><span class="n">6</span> Ficha de la trazabilidad</a>
+    <a href="#eventos"><span class="n">7</span> Eventos</a>
+
+    <div class="grupo">Operación</div>
+    <a href="#lotes"><span class="n">8</span> Lotes de producción</a>
+    <a href="#lote"><span class="n">9</span> Ficha del lote y QR</a>
+    <a href="#liberaciones"><span class="n">10</span> Liberaciones</a>
+    <a href="#despachos"><span class="n">11</span> Despachos</a>
+    <a href="#planta"><span class="n">12</span> Planta</a>
+
+    <div class="grupo">Gestión</div>
+    <a href="#auditoria"><span class="n">13</span> Auditoría</a>
+    <a href="#admin-usuarios"><span class="n">14</span> Usuarios</a>
+    <a href="#admin-roles"><span class="n">15</span> Roles y permisos</a>
+    <a href="#admin-precintos"><span class="n">16</span> Precintos</a>
+    <a href="#admin-establecimientos"><span class="n">17</span> Establecimientos</a>
+    <a href="#admin-granos"><span class="n">18</span> Granos</a>
+
+    <div class="grupo">Cierre</div>
+    <a href="#ayuda-pantalla"><span class="n">19</span> La ayuda en pantalla</a>
+    <a href="#limites"><span class="n">20</span> Lo que todavía no hace</a>
+    <a href="#faq"><span class="n">21</span> Preguntas frecuentes</a>
+  </nav>
+
+  <!-- ══════════════ CONTENIDO ══════════════ -->
+  <main>
+
+    <header class="portada">
+      <div class="cejilla">Anta del Dorado S.A.</div>
+      <h1>Manual del panel web</h1>
+      <p class="bajada">
+        La torre de control de la trazabilidad: dónde se consulta, se audita y se administra
+        todo lo que los operarios cargan desde el bot de Telegram.
+      </p>
+      <div class="meta">
+        <span><b>Versión</b> 2.0</span>
+        <span><b>Actualizado</b> 10 de septiembre de 2026</span>
+        <span><b>Dirección</b> add-tracker-dashboard.vercel.app</span>
+      </div>
+    </header>
+
+    <!-- ─────────────── 1 ─────────────── -->
+    <section id="que-es">
+      <h2><span class="num">01</span> Qué es el panel</h2>
+      <p class="resumen">Y, sobre todo, qué no es.</p>
+
+      <p>
+        El panel es la vista en tiempo real de todo lo que se registra desde el bot de Telegram:
+        cartas de porte, controles de calidad, ingresos a proceso, lotes de producción, firmas,
+        liberaciones y despachos. Se abre desde cualquier navegador, de computadora o de celular.
+      </p>
+
+      <div class="nota">
+        <span class="et">La regla que ordena todo lo demás</span>
+        <b>La carga se hace en el bot; el panel es para consultar y auditar.</b> El operario
+        registra en Telegram, con el teléfono en la mano y a veces con guantes. El panel no compite
+        con eso: muestra lo cargado, lo cruza, lo audita y administra los maestros. Las únicas
+        excepciones son las acciones de gestión que este manual señala expresamente —anular,
+        corregir, y la administración.
+      </div>
+
+      <p>
+        Panel y bot usan la misma base de datos: lo que se registra en Telegram aparece acá al
+        instante, y al revés también. La pantalla se refresca sola cada 30 segundos, así que no
+        hace falta recargar.
+      </p>
+
+      <h3>Qué no hace el panel</h3>
+      <ul>
+        <li>No registra eventos operativos. No hay forma de cargar un control de calidad desde acá.</li>
+        <li>No firma documentos. La firma se hace con el PIN, desde el chat de la persona que firma.</li>
+        <li>No calcula nada que después guarde: los números que ves se derivan al momento de mirarlos.</li>
+      </ul>
+    </section>
+
+    <!-- ─────────────── 2 ─────────────── -->
+    <section id="ingreso">
+      <h2><span class="num">02</span> Cómo se entra</h2>
+      <p class="resumen">Con el mismo PIN que se usa para firmar en el bot.</p>
+
+      <ol class="pasos">
+        <li>Arriba a la derecha, tocar <span class="boton">Iniciar sesión</span>.</li>
+        <li>Elegir tu usuario de la lista e ingresar tu PIN.</li>
+        <li>La sesión dura 8 horas. Se cierra desde el mismo lugar.</li>
+      </ol>
+
+      <p>
+        Es el mismo PIN de la firma en Telegram: no hay dos claves. Si no lo tenés o lo olvidaste,
+        un administrador puede reiniciarlo desde <a href="#admin-usuarios">Usuarios</a>, y el
+        sistema te va a pedir uno nuevo la próxima vez que firmes.
+      </p>
+
+      <div class="alerta">
+        <span class="et">Qué ves y qué no</span>
+        Las secciones que aparecen en el menú lateral dependen de los permisos de tu rol. Si una
+        persona ve menos opciones que otra, no es un problema del navegador: es el rol. Se revisa
+        en <a href="#admin-roles">Roles y permisos</a>.
+      </div>
+    </section>
+
+    <!-- ─────────────── 3 ─────────────── -->
+    <section id="conceptos">
+      <h2><span class="num">03</span> Cómo leer el sistema</h2>
+      <p class="resumen">Cuatro ideas que explican por qué el panel está organizado así.</p>
+
+      <h3>Trazabilidad no es lo mismo que lote de producción</h3>
+      <p>
+        La <b>trazabilidad</b> es materia prima: nace de una Carta de Porte y se identifica con un
+        código como <code>1SM1-SES-2425</code> — origen, establecimiento, grano y campaña.
+      </p>
+      <p>
+        El <b>lote de producción</b> es producto terminado: es la estiba, y se identifica con un
+        rótulo como <code>AR-WSS-LE01-26</code>. Nace cuando el control de proceso abre la estiba,
+        y es lo que arrastran el embolsado, el control de peso, el PCC, la liberación y el despacho.
+      </p>
+      <div class="nota">
+        <span class="et">La relación es en abanico</span>
+        Una estiba se llena a lo largo de varios días con grano de <b>más de una</b> Carta de Porte,
+        y una Carta de Porte puede alimentar <b>varias</b> estibas. Por eso la ficha del lote lista
+        todos sus orígenes en vez de mostrar una línea recta, y por eso los dos números del tablero
+        —trazabilidades y lotes— no tienen por qué coincidir.
+      </div>
+
+      <h3>Hay eventos que no pertenecen a ningún lote</h3>
+      <p>
+        La limpieza de planta y el mantenimiento diario son operaciones de la línea, no de un lote:
+        la limpieza ocurre <i>entre</i> dos lotes —cuando se registra, el siguiente todavía no
+        existe— y el mantenimiento cubre la línea entera por turno. Viven aparte, en la sección
+        <a href="#planta">Planta</a>, y no suman al avance de ninguna trazabilidad.
+      </p>
+
+      <h3>Nada se borra</h3>
+      <p>
+        Un registro confirmado no se edita ni se elimina. Si está mal, se <b>anula</b> —queda
+        marcado, con quién y por qué— o se <b>corrige</b>, creando un registro nuevo que apunta al
+        que reemplaza. La historia queda entera y se consulta en
+        <a href="#auditoria">Auditoría</a>.
+      </p>
+
+      <h3>Cada firma pertenece a un documento</h3>
+      <p>
+        La firma queda atada al evento que cerró, no deducida por cercanía de fecha. Por eso el
+        panel puede decir quién firmó cada cosa sin ambigüedad.
+      </p>
+    </section>
+
+    <!-- ─────────────── 4 ─────────────── -->
+    <section id="torre">
+      <h2><span class="num">04</span> Torre de control</h2>
+      <p class="resumen">La primera pantalla: cómo viene todo hoy.</p>
+
+      <p>
+        Resume la operación completa en una vista. Es el lugar desde donde se detecta que algo
+        necesita atención y se entra a mirarlo.
+      </p>
+
+      <h3>Los indicadores</h3>
+      <div class="tabla-envoltura">
+        <table>
+          <thead><tr><th>Indicador</th><th>Qué cuenta</th></tr></thead>
+          <tbody>
+            <tr><td>Trazabilidades abiertas</td><td>Lotes de materia prima sin cerrar.</td></tr>
+            <tr><td>Lotes de producción</td><td>Estibas con al menos un evento registrado.</td></tr>
+            <tr><td>Eventos hoy</td><td>Registros desde las 00:00, con el acumulado de 7 días debajo.</td></tr>
+            <tr><td>Kg despachados</td><td>Suma de los remitos registrados.</td></tr>
+            <tr><td>Liberaciones</td><td>Cuántas se hicieron. Se pone en rojo si alguna quedó NO APTO.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Pipeline de materia prima</h3>
+      <p>
+        Cada casilla es un estado del circuito y el número, cuántos lotes están ahí. Los estados
+        salen de una tabla de la base, no de una lista escrita en el panel: si mañana se agrega uno,
+        aparece solo.
+      </p>
+      <p>
+        Los estados en rojo son <b>excepciones</b>: RETENIDA, BLOQUEADO, RECHAZADO y EN&nbsp;ANTECÁMARA.
+        Un lote ahí tiene la cadena cortada hasta que alguien lo resuelva.
+      </p>
+
+      <h3>Alertas</h3>
+      <p>Aparecen arriba y cada una corresponde a una regla real del circuito, no a un semáforo inventado:</p>
+      <ul>
+        <li>Lotes en un estado de excepción de la máquina de estados.</li>
+        <li>Controles de PCC con falla: el registro queda como evidencia y el lote no avanza.</li>
+        <li>Liberaciones marcadas NO APTO.</li>
+        <li>Eventos críticos sin firma: PCC, liberación o despacho registrados sin responsable.</li>
+      </ul>
+
+      <h3>Últimos movimientos</h3>
+      <p>
+        Mezcla eventos de lote y de planta ordenados por fecha. Los de planta llevan el sello
+        <b>PLANTA</b> y no enlazan a ninguna ficha de lote, porque no pertenecen a ninguno.
+      </p>
+    </section>
+
+    <!-- ─────────────── 5 ─────────────── -->
+    <section id="trazabilidades">
+      <h2><span class="num">05</span> Trazabilidades</h2>
+      <p class="resumen">Los lotes de materia prima, tal como entraron.</p>
+
+      <p>
+        Lista las trazabilidades abiertas con su avance por fase. El identificador se arma solo al
+        cargar la Carta de Porte, combinando prefijo de origen, establecimiento, grano y campaña.
+      </p>
+
+      <div class="nota">
+        <span class="et">Cuándo se crea una nueva</span>
+        Si dos camiones traen el <b>mismo grano</b>, del <b>mismo establecimiento</b> y de la
+        <b>misma campaña</b>, el bot los suma a la trazabilidad existente en vez de crear otra. Por
+        eso una trazabilidad puede agrupar varias Cartas de Porte.
+      </div>
+
+      <p>Arriba hay un buscador y filtros por estado. Se listan sólo las abiertas: las cerradas o anuladas no aparecen.</p>
+    </section>
+
+    <!-- ─────────────── 6 ─────────────── -->
+    <section id="trazabilidad">
+      <h2><span class="num">06</span> Ficha de la trazabilidad</h2>
+      <p class="resumen">Todo lo que le pasó a un lote de materia prima, en orden.</p>
+
+      <p>
+        Muestra la historia completa: cada evento con quién lo cargó, cuándo, con qué resultado y
+        con qué datos, agrupados por fase del circuito y por Carta de Porte cuando corresponde.
+        Los datos se muestran con etiquetas en castellano, no con los nombres internos de los campos.
+      </p>
+
+      <h3>Humedad fuera de norma</h3>
+      <p>
+        La humedad se compara contra el límite del grano: <b>amarillo</b> entre el máximo y dos
+        puntos más, <b>rojo</b> por encima de eso. El límite que se usa es el que regía cuando se
+        registró el evento, no el de hoy. Si el grano no tiene límite cargado, el panel dice
+        «sin límite cargado» en vez de suponer uno.
+      </p>
+
+      <h3>Corregir o anular desde acá</h3>
+      <p>
+        Si tu rol tiene el permiso, cada evento ofrece anular y corregir. Ver
+        <a href="#auditoria">Auditoría</a> para entender qué hace cada uno.
+      </p>
+    </section>
+
+    <!-- ─────────────── 7 ─────────────── -->
+    <section id="eventos">
+      <h2><span class="num">07</span> Eventos</h2>
+      <p class="resumen">El historial crudo, sin agrupar.</p>
+      <p>
+        La vista cronológica de todo lo registrado, de todos los lotes y de la planta. Sirve para
+        responder «qué pasó esta mañana» o «quién cargó esto» sin entrar lote por lote.
+      </p>
+      <ul>
+        <li>Los eventos de planta aparecen con el sello <b>PLANTA</b> y sin enlace a ninguna ficha.</li>
+        <li>Los anulados y los reemplazados por una corrección no se listan.</li>
+      </ul>
+    </section>
+
+    <!-- ─────────────── 8 ─────────────── -->
+    <section id="lotes">
+      <h2><span class="num">08</span> Lotes de producción</h2>
+      <p class="resumen">El producto terminado, identificado por su rótulo de estiba.</p>
+
+      <p>
+        Lista las estibas con su estado, kilos producidos, unidades y de cuántos lotes de materia
+        prima se alimentaron.
+      </p>
+
+      <h3>Cómo se lee el rótulo</h3>
+      <p>
+        Se arma solo: país, código del grano en inglés, planta con su correlativo, y año de cosecha.
+        En <code>AR-WSS-LE01-26</code> el <code>LE</code> <b>no es literal</b>: es la planta
+        <code>L</code> (Las Lajitas) más <code>E</code> más el número <code>01</code>.
+      </p>
+
+      <h3>De dónde sale este listado</h3>
+      <p>
+        El lote de producción todavía no es una tabla propia: vive como texto dentro de los eventos
+        y como columna en los registros de liberación y despacho. El panel lo reconstruye cada vez
+        que se abre la pantalla.
+      </p>
+      <div class="alerta">
+        <span class="et">Un detalle que conviene saber</span>
+        El rótulo se graba con <b>dos nombres distintos</b> según qué formulario lo escriba: el
+        control de proceso —el que abre la estiba— usa uno, y producción, control de peso y PCC usan
+        otro. El panel mira los dos. Si mirara uno solo, el lote parecería empezar recién en el
+        embolsado y faltaría justo el evento que le dio origen.
+      </div>
+    </section>
+
+    <!-- ─────────────── 9 ─────────────── -->
+    <section id="lote">
+      <h2><span class="num">09</span> Ficha del lote y QR</h2>
+      <p class="resumen">La historia completa de una estiba, y el código que lleva a ella.</p>
+
+      <p>Reúne en un solo lugar lo que está repartido entre eventos y registros:</p>
+      <div class="tabla-envoltura">
+        <table>
+          <thead><tr><th>Bloque</th><th>Qué muestra</th></tr></thead>
+          <tbody>
+            <tr><td>Origen de la materia prima</td><td>De qué trazabilidades se alimentó la estiba. Si hay más de una, se listan todas.</td></tr>
+            <tr><td>Liberación</td><td>Si el lote está apto o bloqueado, con laboratorio e informe. Si salió junto a otros lotes, se puede saltar a ellos.</td></tr>
+            <tr><td>Despachos</td><td>Los remitos por los que salió, con las unidades y los kilos <b>de este lote</b> en cada uno.</td></tr>
+            <tr><td>Historia del lote</td><td>Todos los eventos que lo nombran, en orden. Con origen múltiple, cada uno indica de qué trazabilidad vino.</td></tr>
+            <tr><td>Documentos y análisis</td><td>Los análisis declarados en la liberación y la evidencia enviada por Telegram.</td></tr>
+            <tr><td>Código QR</td><td>Apunta a esta misma ficha. Se descarga como imagen.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="limite">
+        <span class="et">El QR todavía no es para imprimir en etiquetas</span>
+        Funciona y se descarga, pero la dirección a la que apunta depende de un dominio que no está
+        decidido, y el identificador que usa —el rótulo de estiba— es en parte secuencial.
+        <b>Una dirección impresa es para siempre.</b> Hasta cerrar eso, usalo en pantalla.
+      </div>
+    </section>
+
+    <!-- ─────────────── 10 ─────────────── -->
+    <section id="liberaciones">
+      <h2><span class="num">10</span> Liberaciones</h2>
+      <p class="resumen">El control que decide si la mercadería sale a consumo humano.</p>
+
+      <p>
+        Es el punto de no retorno de la cadena. La pantalla lista las liberaciones con el resultado
+        bien visible —apto o bloqueado— y el detalle de laboratorio, número de informe y tipos de
+        análisis.
+      </p>
+
+      <div class="nota">
+        <span class="et">Una liberación puede cubrir varios lotes</span>
+        El formulario de papel tiene cinco renglones de lote bajo un único encabezado, y el sistema
+        lo respeta: una misma liberación, con un mismo informe de laboratorio, puede habilitar
+        varias estibas. Todas se listan y se puede entrar a la ficha de cada una.
+      </div>
+
+      <p>
+        Una liberación no se edita. Si hubo un error, se corrige por el mecanismo de auditoría, que
+        deja constancia.
+      </p>
+    </section>
+
+    <!-- ─────────────── 11 ─────────────── -->
+    <section id="despachos">
+      <h2><span class="num">11</span> Despachos</h2>
+      <p class="resumen">Qué salió de planta, cuánto y para quién.</p>
+
+      <p>
+        Lista los remitos con el detalle por lote. Ese detalle es la parte importante: guarda las
+        unidades y los kilos de cada lote dentro de cada remito, que es exactamente lo que permite
+        <b>cuantificar un retiro</b> si alguna vez hiciera falta.
+      </p>
+
+      <ul>
+        <li>Un lote puede salir en varios remitos: el despacho parcial está contemplado.</li>
+        <li>Si un número de remito se repite, el panel lo marca. El bot avisa al cargarlo pero no lo
+            impide, porque a veces el mismo remito cubre dos salidas.</li>
+        <li>Las patentes se normalizan a mayúscula al registrarlas, se hayan tipeado como se hayan tipeado.</li>
+      </ul>
+    </section>
+
+    <!-- ─────────────── 12 ─────────────── -->
+    <section id="planta">
+      <h2><span class="num">12</span> Planta</h2>
+      <p class="resumen">Limpieza por cambio de grano y mantenimiento diario.</p>
+
+      <p>
+        Las dos operaciones de la línea que no pertenecen a ningún lote. Están separadas del resto
+        porque son de otra naturaleza, y por eso no suman al avance de ninguna trazabilidad.
+      </p>
+
+      <h3>Limpieza de planta</h3>
+      <p>
+        Se registra al cambiar de grano. Pide el material anterior, el siguiente, los kilos de purga
+        y —sólo si se viene de sésamo— el hisopado por sector y el alcohol.
+      </p>
+      <div class="tabla-envoltura">
+        <table>
+          <thead><tr><th>Regla</th><th>Valor</th></tr></thead>
+          <tbody>
+            <tr><td>Purga mínima por cambio de grano</td><td>4 toneladas</td></tr>
+            <tr><td>Purga mínima si el grano anterior fue sésamo</td><td>5 toneladas</td></tr>
+            <tr><td>Hisopado y alcohol</td><td>Únicamente al salir del sésamo</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Los tres valores están cargados en la base, no escritos en el bot: si el cliente los cambia,
+        no hay que tocar el sistema.
+      </p>
+      <div class="alerta">
+        <span class="et">Una limpieza puede quedar no conforme</span>
+        Si la purga no llega al mínimo, el registro <b>se guarda igual</b> —es evidencia— pero queda
+        marcado como no conforme. En ese estado <b>no habilita</b> el cambio de grano: el ingreso a
+        proceso del grano nuevo va a seguir bloqueado hasta que haya una limpieza conforme.
+      </div>
+
+      <h3>Mantenimiento diario</h3>
+      <p>
+        Un registro por turno con los 24 puntos de la planilla, en el orden impreso del formulario.
+      </p>
+      <ul>
+        <li>Incluye una rareza del formulario original que <b>no es un error</b>: los elevadores son
+            1, 2, 4, 5 y 6. No hay «Elevador 3».</li>
+        <li>El control de herramientas se responde <b>Sí o No</b>, no conforme o problema: la
+            planilla pide «Caja Completa SI/NO».</li>
+      </ul>
+
+      <h3>Por qué falta la segunda firma</h3>
+      <p>
+        Las dos planillas tienen dos renglones de firma en el papel: quien ejecutó y quien verificó.
+        El sistema registra sólo la primera, <b>a propósito</b>.
+      </p>
+      <div class="limite">
+        <span class="et">El motivo</span>
+        La firma se resuelve por el chat de Telegram desde el que se carga. Pedir el PIN dos veces
+        desde el mismo teléfono daría <b>la misma persona firmando dos veces</b>: sería peor que una
+        sola firma, porque simularía un control cruzado que no existió. La verificación tiene que
+        llegar desde el chat del verificador, y esa acción todavía no está construida.
+      </div>
+    </section>
+
+    <!-- ─────────────── 13 ─────────────── -->
+    <section id="auditoria">
+      <h2><span class="num">13</span> Auditoría</h2>
+      <p class="resumen">Qué se anuló, qué se corrigió, quién lo hizo y por qué.</p>
+
+      <p>Es la contracara de que nada se borre. Hay dos acciones y no hacen lo mismo:</p>
+      <div class="tabla-envoltura">
+        <table>
+          <thead><tr><th>Acción</th><th>Qué hace</th><th>Cuándo usarla</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>Anular</b></td>
+              <td>Deja el registro marcado como anulado y agrega una fila con quién y por qué. El registro no desaparece.</td>
+              <td>Cuando el evento no debió existir: se cargó sobre el lote equivocado, o se duplicó.</td>
+            </tr>
+            <tr>
+              <td><b>Corregir</b></td>
+              <td>Crea un registro nuevo que apunta al anterior y lo reemplaza. Los dos quedan.</td>
+              <td>Cuando el evento corresponde pero algún dato está mal.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="alerta">
+        <span class="et">Anular puede mover el lote hacia atrás</span>
+        Si se anula el paso que hizo avanzar la cadena, el lote vuelve a su estado anterior. Es lo
+        esperado, no un efecto secundario.
+      </div>
+
+      <p>El motivo es obligatorio: sin motivo no se puede anular.</p>
+    </section>
+
+    <!-- ─────────────── 14 ─────────────── -->
+    <section id="admin-usuarios">
+      <h2><span class="num">14</span> Administración · Usuarios</h2>
+      <p class="resumen">Quién usa el sistema, con qué rol, y el manejo de los PIN.</p>
+
+      <ul>
+        <li>El <b>identificador de Telegram</b> es lo que ata a la persona con su chat. Sin él, el
+            bot no la reconoce y no puede firmar.</li>
+        <li>El <b>PIN</b> es personal e intransferible: es lo que da validez a la firma de cada
+            documento. El mensaje con el PIN se borra del chat apenas se lee.</li>
+        <li><b>Reiniciar un PIN</b> obliga a la persona a crear uno nuevo la próxima vez que firme.</li>
+      </ul>
+
+      <div class="nota">
+        <span class="et">Los permisos no son por persona</span>
+        Se asignan por <b>rol</b>. Si dos personas comparten rol, tienen exactamente el mismo acceso.
+        Para diferenciarlas hay que ponerlas en roles distintos.
+      </div>
+    </section>
+
+    <!-- ─────────────── 15 ─────────────── -->
+    <section id="admin-roles">
+      <h2><span class="num">15</span> Administración · Roles y permisos</h2>
+      <p class="resumen">Una matriz de roles por permisos, dividida en dos mitades.</p>
+
+      <div class="tabla-envoltura">
+        <table>
+          <thead><tr><th>Mitad</th><th>Qué gobierna</th><th>Cuándo se aplica</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>Bot de Telegram</b></td>
+              <td>Qué formulario puede abrir cada rol. Un permiso por formulario.</td>
+              <td>En tiempo real. Filtra los botones del menú y además rebota la acción si alguien toca un botón de un mensaje viejo.</td>
+            </tr>
+            <tr>
+              <td><b>Panel web</b></td>
+              <td>Qué secciones del panel puede abrir cada rol.</td>
+              <td>Al recargar la página.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Un permiso por formulario</h3>
+      <p>
+        Los permisos del bot están agrupados por fase del circuito, y cada fila dice qué botón del
+        menú abre. Antes existía un solo permiso general que abría nueve formularios a la vez: dárselo
+        a alguien para que cargara una limpieza le daba también el control de metales y la producción.
+        Ahora cada formulario tiene el suyo y se prenden de a uno, a medida que se validan.
+      </p>
+      <p>
+        Los botones <span class="boton">todos</span> y <span class="boton">ninguno</span> de cada
+        fila aplican el cambio a todos los roles de una vez.
+      </p>
+
+      <h3>El grupo «Históricos»</h3>
+      <p>
+        Son los permisos generales que quedaron de antes y ya no gobiernan ningún formulario. No se
+        borraron porque son el registro de quién tenía qué. La fila lo avisa: <b>tildarlos no
+        habilita nada</b>.
+      </p>
+
+      <div class="alerta">
+        <span class="et">El candado anti-encierro</span>
+        Al rol Administrador no se le pueden quitar los permisos de entrar a Administración ni de
+        gestionar roles. Sin ellos nadie podría volver a esta pantalla para restaurar nada. Aparecen
+        con un candado en vez de una casilla.
+      </div>
+
+      <h3>Cómo usarla bien</h3>
+      <ol class="pasos">
+        <li>Antes de sacarle un permiso a un rol, mirá qué botón dice que abre: la fila lo indica.</li>
+        <li>Al validar un formulario nuevo, prendéselo primero a un rol de prueba y recién después al resto.</li>
+        <li>Si alguien reporta que «desapareció un botón», revisá acá antes de buscar un problema en el bot.</li>
+      </ol>
+    </section>
+
+    <!-- ─────────────── 16 ─────────────── -->
+    <section id="admin-precintos">
+      <h2><span class="num">16</span> Administración · Precintos</h2>
+      <p class="resumen">Las precargas que se sacan por foto antes de que exista la Carta de Porte.</p>
+      <p>
+        Existe porque en la práctica el operario ve el precinto antes que el papel: se saca la foto
+        en el momento y se vincula después. Desde acá se revisan las precargas, se corrige un peso
+        mal leído y se vinculan a la Carta de Porte cuando aparece.
+      </p>
+      <ul>
+        <li>Una precarga sin vincular no pertenece a ninguna trazabilidad todavía.</li>
+        <li>Un peso corregido a mano queda marcado como corregido: no se pierde el dato de que la
+            lectura original era otra.</li>
+      </ul>
+    </section>
+
+    <!-- ─────────────── 17 ─────────────── -->
+    <section id="admin-establecimientos">
+      <h2><span class="num">17</span> Administración · Establecimientos</h2>
+      <p class="resumen">El maestro de campos de origen.</p>
+      <p>
+        Es lo que el lector de la Carta de Porte usa para normalizar de dónde viene el grano. El
+        código de cada establecimiento termina formando parte del identificador de cada trazabilidad.
+      </p>
+      <ul>
+        <li>Cambiar un código no reescribe las trazabilidades ya creadas.</li>
+        <li>El lector busca por nombre y por variantes conocidas. Si un establecimiento se escribe de
+            varias formas en los papeles, conviene que esté contemplado acá.</li>
+      </ul>
+    </section>
+
+    <!-- ─────────────── 18 ─────────────── -->
+    <section id="admin-granos">
+      <h2><span class="num">18</span> Administración · Granos</h2>
+      <p class="resumen">Códigos, límite de humedad y campos de calidad por grano.</p>
+
+      <p>
+        El bot pregunta lo que diga esta tabla: agregar un campo de calidad es un alta acá, no un
+        cambio en el bot.
+      </p>
+
+      <div class="tabla-envoltura">
+        <table>
+          <thead><tr><th>Campo</th><th>Para qué sirve</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Humedad máxima</td>
+              <td>El límite del grano. Por encima del máximo <b>más dos puntos</b>, el lote se rechaza. Si está vacío, el sistema dice «sin límite cargado» en vez de suponer uno.</td>
+            </tr>
+            <tr>
+              <td>Rótulo de estiba</td>
+              <td>El código del grano en inglés, que forma parte del rótulo del lote de producción. No se deduce del código interno, por eso se carga a mano.</td>
+            </tr>
+            <tr>
+              <td>Campos de calidad</td>
+              <td>Los defectos que se miden para ese grano. Algunos no suman a la caída total: eso también se define acá.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul>
+        <li>Cambiar un límite de humedad <b>no</b> reescribe los eventos ya registrados: cada uno
+            guarda el límite que regía en su momento.</li>
+        <li>Un grano sin rótulo de estiba obliga a tipear el rótulo a mano en el bot. Es deliberado:
+            un rótulo inventado viajaría hasta la liberación y el despacho.</li>
+      </ul>
+    </section>
+
+    <!-- ─────────────── 19 ─────────────── -->
+    <section id="ayuda-pantalla">
+      <h2><span class="num">19</span> La ayuda en pantalla</h2>
+      <p class="resumen">El botón <span class="boton">?</span> al lado del título de cada pantalla.</p>
+      <p>
+        Abre un resumen de <i>esa</i> pantalla: qué hace, qué datos maneja, qué condiciones tiene y
+        cómo se usa bien. Es la versión corta; este manual es la larga, y el pie del popup enlaza acá.
+      </p>
+      <p>
+        La ayuda se escribe junto con el sistema: si cambia un límite o una regla, cambia también el
+        texto. Una ayuda desactualizada miente peor que no tener ayuda.
+      </p>
+    </section>
+
+    <!-- ─────────────── 20 ─────────────── -->
+    <section id="limites">
+      <h2><span class="num">20</span> Lo que todavía no hace</h2>
+      <p class="resumen">Los límites conocidos, para que no se confundan con fallas.</p>
+
+      <div class="limite">
+        <span class="et">No se pueden adjuntar archivos</span>
+        Los informes de laboratorio, el PDF de la liberación y el remito escaneado no se pueden
+        subir todavía: falta conectar el almacenamiento de archivos. La ficha del lote muestra los
+        análisis <b>declarados</b> en el formulario —laboratorio, número de informe, tipo— y lo dice
+        explícitamente en vez de dejar un espacio vacío.
+      </div>
+
+      <div class="limite">
+        <span class="et">Las fotos de Telegram no son documentos</span>
+        Las que se mandan por el bot quedan como una referencia a un archivo en los servidores de
+        Telegram. No tienen huella digital ni se pueden abrir desde el panel: se listan para que
+        conste que existen.
+      </div>
+
+      <div class="limite">
+        <span class="et">El QR no está listo para imprimir</span>
+        Ver la sección <a href="#lote">Ficha del lote</a>.
+      </div>
+
+      <div class="limite">
+        <span class="et">Falta la segunda firma de las planillas de planta</span>
+        Ver la sección <a href="#planta">Planta</a>.
+      </div>
+
+      <div class="limite">
+        <span class="et">Todavía no están construidos</span>
+        Control de Producto Final, Checklist de Carga y el registro de Detector Fallido. Las
+        secciones del panel que los mostrarían aparecerán cuando existan.
+      </div>
+    </section>
+
+    <!-- ─────────────── 21 ─────────────── -->
+    <section id="faq">
+      <h2><span class="num">21</span> Preguntas frecuentes</h2>
+
+      <h3>Cargué algo en el bot y no lo veo en el panel.</h3>
+      <p>
+        La pantalla se refresca sola cada 30 segundos; probá recargar. Si sigue sin aparecer,
+        fijate en <a href="#eventos">Eventos</a>: si el registro está ahí pero no en la ficha, puede
+        ser que se haya cargado sobre otro lote. Si no está en ningún lado, la carga no se completó
+        —lo más común es que se haya cancelado la firma, y en ese caso <b>no se graba nada</b>.
+      </p>
+
+      <h3>A un compañero le aparecen más secciones que a mí.</h3>
+      <p>
+        Es el rol, no el navegador. Se revisa en <a href="#admin-roles">Roles y permisos</a>.
+      </p>
+
+      <h3>Los kg despachados no cuadran con lo producido.</h3>
+      <p>
+        Es esperable si hubo despachos parciales: un lote puede salir en varios remitos. El detalle
+        por lote está en <a href="#despachos">Despachos</a>.
+      </p>
+
+      <h3>Un evento aparece sin firmante.</h3>
+      <p>
+        Los eventos anteriores a que se implementara la firma vinculada no la tienen. Los nuevos sí:
+        cada firma queda atada a su evento.
+      </p>
+
+      <h3>La estiba no aparece en la lista de lotes.</h3>
+      <p>
+        Un lote nace cuando el control de proceso abre la estiba. Antes de eso, el material se sigue
+        por trazabilidad, no por lote.
+      </p>
+
+      <h3>Me equivoqué al cargar y ya firmé.</h3>
+      <p>
+        No se borra: se anula o se corrige desde la ficha, con motivo. Ver
+        <a href="#auditoria">Auditoría</a>.
+      </p>
+
+      <h3>¿Puedo imprimir este manual?</h3>
+      <p>
+        Sí. <code>Ctrl+P</code> (o <code>⌘P</code>) da una versión limpia, sin el índice lateral,
+        lista para guardar como PDF.
+      </p>
+    </section>
+
+    <p class="pie">
+      ADD Tracker · Anta del Dorado S.A. · Manual del panel web, versión 2.0 — 10 de septiembre de 2026.<br>
+      Existe también un manual aparte para el bot de Telegram, que es donde se hace la carga.
+    </p>
+
+  </main>
+</div>
+
+<button class="abrir-indice" id="abrir-indice" type="button" aria-controls="indice">☰ Índice</button>
+
+<script>
+  // Índice: resalta la sección visible, filtra por texto y se abre en mobile.
+  (function () {
+    var indice = document.getElementById("indice");
+    var enlaces = Array.prototype.slice.call(indice.querySelectorAll("a[href^='#']"));
+    var secciones = enlaces
+      .map(function (a) { return document.getElementById(a.getAttribute("href").slice(1)); })
+      .filter(Boolean);
+
+    // Resaltado de la sección en pantalla. Se toma la última que empezó por
+    // encima del tercio superior: es la que se está leyendo.
+    function marcar() {
+      var corte = window.scrollY + window.innerHeight * 0.28;
+      var activa = secciones[0];
+      for (var i = 0; i < secciones.length; i++) {
+        if (secciones[i].offsetTop <= corte) activa = secciones[i];
+      }
+      enlaces.forEach(function (a) {
+        a.classList.toggle("activo", a.getAttribute("href") === "#" + activa.id);
+      });
+    }
+    var pendiente = false;
+    window.addEventListener("scroll", function () {
+      if (pendiente) return;
+      pendiente = true;
+      requestAnimationFrame(function () { marcar(); pendiente = false; });
+    }, { passive: true });
+    marcar();
+
+    // Filtro del índice.
+    var buscador = document.getElementById("buscador");
+    buscador.addEventListener("input", function () {
+      var q = buscador.value.trim().toLowerCase();
+      enlaces.forEach(function (a) {
+        a.hidden = q.length > 0 && a.textContent.toLowerCase().indexOf(q) === -1;
+      });
+      // Los encabezados de grupo se ocultan si no les quedó ningún enlace visible.
+      Array.prototype.slice.call(indice.querySelectorAll(".grupo")).forEach(function (g) {
+        var visible = false, n = g.nextElementSibling;
+        while (n && !n.classList.contains("grupo")) {
+          if (n.tagName === "A" && !n.hidden) visible = true;
+          n = n.nextElementSibling;
+        }
+        g.hidden = !visible;
+      });
+    });
+
+    // Índice como cajón en pantallas chicas.
+    var boton = document.getElementById("abrir-indice");
+    boton.addEventListener("click", function () {
+      indice.classList.toggle("abierto");
+    });
+    indice.addEventListener("click", function (ev) {
+      if (ev.target.tagName === "A") indice.classList.remove("abierto");
+    });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") indice.classList.remove("abierto");
+    });
+  })();
+</script>
+
+</body>
+</html>

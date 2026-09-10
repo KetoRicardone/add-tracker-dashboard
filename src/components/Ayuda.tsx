@@ -126,8 +126,10 @@ function ModalAyuda({ contenido, onCerrar }: { contenido: TemaAyuda; onCerrar: (
           <p className="min-w-[200px] flex-1 text-[10.5px] leading-snug text-muted-foreground">
             {NOTA_GENERAL}
           </p>
+          {/* El ancla lleva al capítulo de ESTA pantalla, no al principio del
+              manual: el popup es el resumen y el manual, la versión larga. */}
           <a
-            href={MANUAL_URL}
+            href={contenido.ancla ? `${MANUAL_URL}#${contenido.ancla}` : MANUAL_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex flex-shrink-0 items-center gap-1 text-[11.5px] font-semibold text-primary hover:underline"

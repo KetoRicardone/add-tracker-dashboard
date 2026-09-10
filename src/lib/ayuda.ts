@@ -36,6 +36,8 @@ export interface TemaAyuda {
   icono: string;
   resumen: string;
   secciones: SeccionAyuda[];
+  /** Sección del manual completo a la que enlaza el pie del popup. */
+  ancla?: string;
 }
 
 // Nota común a todas las pantallas: se repite en el pie del popup en vez de en
@@ -44,13 +46,14 @@ export const NOTA_GENERAL =
   "El panel es de consulta y auditoría: la carga se hace desde el bot de Telegram, en planta. " +
   "Qué secciones ves depende de los permisos de ámbito Panel de tu rol.";
 
-export const MANUAL_URL = "/manuales/Manual_Panel_ADD_Tracker.pdf";
+export const MANUAL_URL = "/manuales/manual-panel.html";
 
 export const AYUDA: Record<string, TemaAyuda> = {
   // ───────────────────────────────────────────────── Torre de control ──
   torre: {
     titulo: "Torre de control",
     icono: "🗼",
+    ancla: "torre",
     resumen:
       "La primera pantalla: cómo viene todo hoy. Números, en qué estado está cada lote, " +
       "qué hay que mirar y qué se cargó recién.",
@@ -140,6 +143,7 @@ export const AYUDA: Record<string, TemaAyuda> = {
   trazabilidades: {
     titulo: "Trazabilidades",
     icono: "🌾",
+    ancla: "trazabilidades",
     resumen:
       "Los lotes de materia prima, tal como entraron. Cada trazabilidad nace de una Carta de " +
       "Porte y agrupa todo lo que le pasó a ese grano.",
@@ -182,6 +186,7 @@ export const AYUDA: Record<string, TemaAyuda> = {
   trazabilidad: {
     titulo: "Ficha de la trazabilidad",
     icono: "📋",
+    ancla: "trazabilidad",
     resumen:
       "Todo lo que le pasó a un lote de materia prima, en orden y agrupado por fase del circuito.",
     secciones: [
@@ -233,6 +238,7 @@ export const AYUDA: Record<string, TemaAyuda> = {
   lotes: {
     titulo: "Lotes de producción",
     icono: "📦",
+    ancla: "lotes",
     resumen:
       "El producto terminado. Cada lote es una estiba, identificada por el rótulo que genera el " +
       "control de proceso y que arrastran todos los pasos siguientes.",
@@ -281,6 +287,7 @@ export const AYUDA: Record<string, TemaAyuda> = {
   lote: {
     titulo: "Ficha del lote",
     icono: "🏷",
+    ancla: "lote",
     resumen:
       "La historia completa de una estiba: de qué campos vino, qué se le hizo, si está liberada, " +
       "por dónde salió y qué documentación tiene.",
@@ -356,6 +363,7 @@ export const AYUDA: Record<string, TemaAyuda> = {
   eventos: {
     titulo: "Eventos",
     icono: "⚡",
+    ancla: "eventos",
     resumen:
       "El historial crudo: todo lo que se registró, de todos los lotes y de la planta, ordenado " +
       "por fecha.",
@@ -386,6 +394,7 @@ export const AYUDA: Record<string, TemaAyuda> = {
   planta: {
     titulo: "Planta",
     icono: "🏭",
+    ancla: "planta",
     resumen:
       "Limpieza por cambio de grano y mantenimiento diario: las dos operaciones de la línea que " +
       "no pertenecen a ningún lote.",
@@ -445,6 +454,7 @@ export const AYUDA: Record<string, TemaAyuda> = {
   liberaciones: {
     titulo: "Liberaciones",
     icono: "🛡",
+    ancla: "liberaciones",
     resumen:
       "El control que decide si la mercadería sale a consumo humano. Es el punto de no retorno " +
       "de la cadena.",
@@ -488,6 +498,7 @@ export const AYUDA: Record<string, TemaAyuda> = {
   despachos: {
     titulo: "Despachos",
     icono: "🚚",
+    ancla: "despachos",
     resumen:
       "Qué salió de planta, cuánto y para quién. Cierra la cadena operativa.",
     secciones: [
@@ -518,6 +529,7 @@ export const AYUDA: Record<string, TemaAyuda> = {
   auditoria: {
     titulo: "Auditoría",
     icono: "🛡",
+    ancla: "auditoria",
     resumen:
       "Qué se anuló, qué se corrigió, quién lo hizo y por qué. La contracara de que nada se borre.",
     secciones: [
@@ -548,6 +560,7 @@ export const AYUDA: Record<string, TemaAyuda> = {
   adminUsuarios: {
     titulo: "Usuarios",
     icono: "👥",
+    ancla: "admin-usuarios",
     resumen: "Quién puede usar el bot y el panel, con qué rol, y el manejo de sus PIN.",
     secciones: [
       {
@@ -577,6 +590,7 @@ export const AYUDA: Record<string, TemaAyuda> = {
   adminRoles: {
     titulo: "Roles y permisos",
     icono: "🔐",
+    ancla: "admin-roles",
     resumen:
       "Qué puede hacer cada rol, separado en dos mitades: los formularios del bot y las secciones " +
       "del panel.",
@@ -641,6 +655,7 @@ export const AYUDA: Record<string, TemaAyuda> = {
   adminPrecintos: {
     titulo: "Precintos",
     icono: "🔖",
+    ancla: "admin-precintos",
     resumen:
       "Las precargas de precintos que se sacan por foto antes de que exista la Carta de Porte.",
     secciones: [
@@ -669,6 +684,7 @@ export const AYUDA: Record<string, TemaAyuda> = {
   adminEstablecimientos: {
     titulo: "Establecimientos",
     icono: "🏢",
+    ancla: "admin-establecimientos",
     resumen:
       "El maestro de campos de origen. Es lo que el lector de la Carta de Porte usa para " +
       "normalizar de dónde viene el grano.",
@@ -698,6 +714,7 @@ export const AYUDA: Record<string, TemaAyuda> = {
   adminGranos: {
     titulo: "Granos",
     icono: "🌱",
+    ancla: "admin-granos",
     resumen:
       "El maestro de granos: sus códigos, el límite de humedad y los campos de calidad que el " +
       "bot pregunta para cada uno.",
