@@ -234,6 +234,16 @@ function FilasDeGrupo({
       </tr>
       {filas.map((p) => {
         const botones = menuPorPermiso[p.clave];
+        // El aviso de "no habilita nada" sólo aplica al ámbito BOT: ahí el
+        // permiso manda porque alguna fila de menu_items lo nombra en
+        // permiso_requerido, así que sin fila no abre ningún botón (el caso de
+        // PROCESO y CALIDAD tras F0_031).
+        //
+        // Los PANEL_* no viven en menu_items y nunca van a estar: gobiernan
+        // secciones del panel desde el código (guardPermiso en las APIs, puede()
+        // en las páginas). Mostrarles el aviso decía justo lo contrario de la
+        // verdad — PANEL_ACCESO es lo que deja entrar.
+        const esBot = (p.ambito || "BOT") === "BOT";
         return (
           <tr key={p.clave} className={cn(historico && "opacity-60")}>
             <td className="px-3 py-2 align-top">
@@ -241,13 +251,13 @@ function FilasDeGrupo({
               {p.descripcion && <div className="text-xs text-muted-foreground">{p.descripcion}</div>}
               {botones ? (
                 <div className="mt-0.5 text-[11px] text-muted-foreground/70">Botones: {botones}</div>
-              ) : (
-                // Sin botón asociado, tildar o destildar no cambia nada en el bot:
-                // decirlo evita que alguien crea que revocó un acceso.
+              ) : esBot ? (
+                // Sin fila en menu_items, tildar o destildar no cambia nada en el
+                // bot: decirlo evita que alguien crea que revocó un acceso.
                 <div className="mt-0.5 text-[11px] text-warning">
                   No gobierna ningún botón del menú — tildarlo no habilita nada
                 </div>
-              )}
+              ) : null}
             </td>
             {roles.map((r) => {
               const k = key(r, p.clave);
