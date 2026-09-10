@@ -13,6 +13,7 @@ import { listarLotes } from "@/lib/lotes";
 import { LoteCard } from "@/components/LoteCard";
 import { EVENT_DEFINITIONS } from "@/lib/events";
 import { cn } from "@/lib/utils";
+import { BotonAyuda } from "@/components/Ayuda";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -47,7 +48,10 @@ export default async function TorreDeControlPage() {
             🗼
           </span>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Torre de control</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight">Torre de control</h1>
+              <BotonAyuda tema="torre" />
+            </div>
             <p className="mt-0.5 text-sm text-muted-foreground">
               Anta del Dorado S.A. — la carga se hace en el bot; acá se consulta y se audita
             </p>

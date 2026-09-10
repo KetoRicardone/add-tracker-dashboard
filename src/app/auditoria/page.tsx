@@ -7,6 +7,7 @@ import { getSesion } from "@/lib/auth";
 import { puede } from "@/lib/permisos";
 import { EVENT_DEFINITIONS, GRAIN_NAMES } from "@/lib/events";
 import { formatDate, cn } from "@/lib/utils";
+import { BotonAyuda } from "@/components/Ayuda";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -84,7 +85,10 @@ export default async function AuditoriaPage() {
             <ShieldCheck className="h-6 w-6 text-primary" />
           </span>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Auditoría</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight">Auditoría</h1>
+              <BotonAyuda tema="auditoria" />
+            </div>
             <p className="mt-0.5 text-sm text-muted-foreground">
               Anulaciones y correcciones de eventos. Nada se borra: cada movimiento queda con su autor y su motivo.
             </p>

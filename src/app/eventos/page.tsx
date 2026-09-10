@@ -8,6 +8,7 @@ import { LoginRequired } from "@/components/LoginRequired";
 import { SinPermiso } from "@/components/SinPermiso";
 import { getSesion } from "@/lib/auth";
 import { puede } from "@/lib/permisos";
+import { BotonAyuda } from "@/components/Ayuda";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -68,7 +69,10 @@ export default async function EventosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Eventos</h1>
+        <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight">Eventos</h1>
+              <BotonAyuda tema="eventos" />
+            </div>
         <p className="text-sm text-muted-foreground mt-1">
           Registro cronológico de todos los eventos
         </p>

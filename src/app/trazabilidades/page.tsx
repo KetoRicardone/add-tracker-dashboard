@@ -5,6 +5,7 @@ import { LoginRequired } from "@/components/LoginRequired";
 import { SinPermiso } from "@/components/SinPermiso";
 import { getSesion } from "@/lib/auth";
 import { puede } from "@/lib/permisos";
+import { BotonAyuda } from "@/components/Ayuda";
 
 // Este listado vivía en `/`. Se movió acá cuando `/` pasó a ser la Torre de
 // Control: son dos preguntas distintas — "cómo viene todo" contra "mostrame las
@@ -46,7 +47,10 @@ export default async function TrazabilidadesPage() {
               🌾
             </span>
             <div>
+              <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold tracking-tight">Trazabilidades</h1>
+              <BotonAyuda tema="trazabilidades" />
+            </div>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 Lotes de materia prima, desde la Carta de Porte
               </p>

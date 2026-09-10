@@ -5,6 +5,7 @@ import { SinPermiso } from "@/components/SinPermiso";
 import { getSesion } from "@/lib/auth";
 import { puede } from "@/lib/permisos";
 import { despachos } from "@/lib/operacion";
+import { BotonAyuda } from "@/components/Ayuda";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -29,7 +30,10 @@ export default async function DespachosPage() {
             🚚
           </span>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Despachos</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight">Despachos</h1>
+              <BotonAyuda tema="despachos" />
+            </div>
             <p className="mt-0.5 text-sm text-muted-foreground">
               RGAN-56 — cierra la cadena operativa: qué salió, cuánto y para quién
             </p>

@@ -4,6 +4,7 @@ import { LoteCard } from "@/components/LoteCard";
 import { getSesion } from "@/lib/auth";
 import { puede } from "@/lib/permisos";
 import { listarLotes } from "@/lib/lotes";
+import { BotonAyuda } from "@/components/Ayuda";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -25,7 +26,10 @@ export default async function LotesPage() {
             📦
           </span>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Lotes de producción</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight">Lotes de producción</h1>
+              <BotonAyuda tema="lotes" />
+            </div>
             <p className="mt-0.5 text-sm text-muted-foreground">
               El rótulo de estiba que abre RGAN-53 y que arrastran RGAN-57, 42, 81, 104 y 56
             </p>

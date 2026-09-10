@@ -7,6 +7,7 @@ import { PermisosMatrix, Permiso, RolPermiso } from "./PermisosMatrix";
 import { PrecintosTab, PrecargaAdminData } from "./PrecintosTab";
 import { EstablecimientosTab, Establecimiento } from "./EstablecimientosTab";
 import { GranosTab, Grano, CampoCalidad } from "./GranosTab";
+import { BotonAyuda } from "@/components/Ayuda";
 
 export interface AdminData {
   usuarios: Usuario[];
@@ -35,6 +36,36 @@ const PERMISO_TAB: Record<Tab, string> = {
 };
 const ORDEN: Tab[] = ["usuarios", "permisos", "precintos", "establecimientos", "granos"];
 
+// Título y tema de ayuda de cada pestaña. Hasta ahora la única pista de en qué
+// pestaña estabas era el resaltado del menú lateral; el encabezado lo dice.
+const CABECERA: Record<Tab, { titulo: string; tema: string; detalle: string }> = {
+  usuarios: {
+    titulo: "Usuarios",
+    tema: "adminUsuarios",
+    detalle: "Quién usa el bot y el panel, con qué rol, y el manejo de sus PIN",
+  },
+  permisos: {
+    titulo: "Roles y permisos",
+    tema: "adminRoles",
+    detalle: "Qué puede hacer cada rol en el bot y en el panel",
+  },
+  precintos: {
+    titulo: "Precintos",
+    tema: "adminPrecintos",
+    detalle: "Precargas por foto, corrección de pesos y vínculo con la Carta de Porte",
+  },
+  establecimientos: {
+    titulo: "Establecimientos",
+    tema: "adminEstablecimientos",
+    detalle: "El maestro de campos de origen que normaliza la Carta de Porte",
+  },
+  granos: {
+    titulo: "Granos",
+    tema: "adminGranos",
+    detalle: "Códigos, límite de humedad y campos de calidad por grano",
+  },
+};
+
 // La sección se elige desde el submenú lateral (/admin?tab=...); acá solo se renderiza.
 export function AdminPanel({ data }: { data: AdminData }) {
   const searchParams = useSearchParams();
@@ -53,6 +84,21 @@ export function AdminPanel({ data }: { data: AdminData }) {
     );
   }
 
+  const cab = CABECERA[pedida];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-baseline gap-2">
+        <h2 className="text-lg font-semibold tracking-tight">{cab.titulo}</h2>
+        <BotonAyuda tema={cab.tema} tamano="sm" />
+        <p className="ml-1 hidden text-xs text-muted-foreground sm:block">{cab.detalle}</p>
+      </div>
+      {contenido(pedida, data)}
+    </div>
+  );
+}
+
+function contenido(pedida: Tab, data: AdminData) {
   switch (pedida) {
     case "permisos":
       return (

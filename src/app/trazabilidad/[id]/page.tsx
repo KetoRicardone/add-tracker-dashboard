@@ -12,6 +12,7 @@ import { ArrowLeft, Calendar, MapPin, FileText, Layers } from "lucide-react";
 import { headers } from "next/headers";
 import { getSesion } from "@/lib/auth";
 import Link from "next/link";
+import { BotonAyuda } from "@/components/Ayuda";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -161,6 +162,7 @@ export default async function TrazabilidadDetailPage({ params }: { params: { id:
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="font-mono text-xl font-bold tracking-tight">{traz.trazabilidad_id}</h1>
+              <BotonAyuda tema="trazabilidad" />
               <span className={cn(
                 "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide border",
                 traz.estado_trazabilidad === "ABIERTA"

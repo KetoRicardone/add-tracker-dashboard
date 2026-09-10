@@ -15,6 +15,7 @@ import { fichaLote } from "@/lib/lotes";
 import { defForEvent, GRAIN_NAMES } from "@/lib/events";
 import { estadosFsm } from "@/lib/fsm";
 import { cn } from "@/lib/utils";
+import { BotonAyuda } from "@/components/Ayuda";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -61,6 +62,7 @@ export default async function FichaLotePage({ params }: { params: { codigo: stri
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="font-mono text-2xl font-bold tracking-tight">{codigo}</h1>
+              <BotonAyuda tema="lote" />
               {ficha.resumen && <EstadoLoteBadge estado={ficha.resumen.estado} />}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">

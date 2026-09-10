@@ -8,6 +8,7 @@ import { getSesion } from "@/lib/auth";
 import { puede } from "@/lib/permisos";
 import { eventosPlanta } from "@/lib/operacion";
 import { formatDate } from "@/lib/utils";
+import { BotonAyuda } from "@/components/Ayuda";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -36,7 +37,10 @@ export default async function PlantaPage() {
             🏭
           </span>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Planta</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight">Planta</h1>
+              <BotonAyuda tema="planta" />
+            </div>
             <p className="mt-0.5 text-sm text-muted-foreground">
               Limpieza (RGAN-40) y mantenimiento (RGAN-80) — operaciones de la línea, no de un lote
             </p>

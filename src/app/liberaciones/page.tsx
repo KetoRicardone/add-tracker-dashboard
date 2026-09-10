@@ -6,6 +6,7 @@ import { getSesion } from "@/lib/auth";
 import { puede } from "@/lib/permisos";
 import { liberaciones } from "@/lib/operacion";
 import { cn } from "@/lib/utils";
+import { BotonAyuda } from "@/components/Ayuda";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -29,7 +30,10 @@ export default async function LiberacionesPage() {
             🛡
           </span>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Liberación de producto</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight">Liberación de producto</h1>
+              <BotonAyuda tema="liberaciones" />
+            </div>
             <p className="mt-0.5 text-sm text-muted-foreground">
               RGAN-104 — el gate que decide si la mercadería sale a consumo humano
             </p>
