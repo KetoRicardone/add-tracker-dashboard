@@ -59,7 +59,7 @@ async function loadRoles() {
   try {
     // `ambito` (F0_018) separa los permisos del bot de los del panel.
     permisos = await query<Permiso>(
-      `SELECT clave, descripcion, COALESCE(ambito, 'BOT') AS ambito
+      `SELECT clave, descripcion, COALESCE(ambito, 'BOT') AS ambito, COALESCE(grupo, 'GENERAL') AS grupo
          FROM permisos ORDER BY COALESCE(ambito,'BOT') DESC, COALESCE(orden, 0), clave`
     );
     rolPermisos = await query<RolPermiso>(`SELECT rol::text AS rol, permiso_clave FROM rol_permisos`);

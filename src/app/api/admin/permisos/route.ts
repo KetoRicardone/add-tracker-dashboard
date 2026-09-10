@@ -12,8 +12,8 @@ export async function GET() {
 
   try {
     // `ambito` (F0_018) separa los permisos del bot de los del panel.
-    const permisos = await query<{ clave: string; descripcion: string | null; ambito: string }>(
-      `SELECT clave, descripcion, COALESCE(ambito, 'BOT') AS ambito
+    const permisos = await query<{ clave: string; descripcion: string | null; ambito: string; grupo: string }>(
+      `SELECT clave, descripcion, COALESCE(ambito, 'BOT') AS ambito, COALESCE(grupo, 'GENERAL') AS grupo
          FROM permisos ORDER BY COALESCE(ambito,'BOT') DESC, COALESCE(orden, 0), clave`
     );
     const roles = await query<{ rol: string }>(`SELECT unnest(enum_range(NULL::rol_usuario))::text AS rol`);

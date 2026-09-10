@@ -63,8 +63,15 @@ export const config = {
     "/api/:path*",
     "/manuales/:path*",
     "/trazabilidad/:path*",
+    "/trazabilidades/:path*",
     "/eventos/:path*",
     "/auditoria/:path*",
     "/admin/:path*",
+    // Torre de control (2026-09-10): sin estas entradas las páginas nuevas
+    // quedarían accesibles sin cookie, porque el matcher es una lista blanca.
+    "/lotes/:path*",
+    "/liberaciones/:path*",
+    "/despachos/:path*",
+    "/planta/:path*",
   ],
 };

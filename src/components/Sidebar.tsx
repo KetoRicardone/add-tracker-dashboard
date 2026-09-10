@@ -17,6 +17,9 @@ import {
   MonitorSmartphone,
   Building2,
   Wheat,
+  Package,
+  Ship,
+  Factory,
 } from "lucide-react";
 import { LoginControl } from "./LoginControl";
 import { cn } from "@/lib/utils";
@@ -97,13 +100,59 @@ export function Sidebar({ nombre, permisos }: { nombre: string | null; permisos:
     <nav className="flex flex-col gap-1">
       {puede("PANEL_TRAZABILIDAD") && (
         <Link href="/" onClick={() => setOpen(false)} className={linkClass(pathname === "/")}>
-          <LayoutDashboard className="h-4 w-4" /> Panel de control
+          <LayoutDashboard className="h-4 w-4" /> Torre de control
+        </Link>
+      )}
+      {puede("PANEL_TRAZABILIDAD") && (
+        <Link
+          href="/trazabilidades"
+          onClick={() => setOpen(false)}
+          className={linkClass(pathname.startsWith("/trazabilidad"))}
+        >
+          <Wheat className="h-4 w-4" /> Trazabilidades
         </Link>
       )}
       {puede("PANEL_EVENTOS") && (
         <Link href="/eventos" onClick={() => setOpen(false)} className={linkClass(pathname.startsWith("/eventos"))}>
           <ListChecks className="h-4 w-4" /> Eventos
         </Link>
+      )}
+
+      {/* Operación: lo que pasa después de que la materia prima entra a la
+          línea. Se separa de arriba porque son preguntas distintas — arriba
+          "qué entró", acá "qué salió". */}
+      {puede("PANEL_TRAZABILIDAD") && (
+        <>
+          <p className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Operación
+          </p>
+          <Link href="/lotes" onClick={() => setOpen(false)} className={linkClass(pathname.startsWith("/lotes"))}>
+            <Package className="h-4 w-4" /> Lotes de producción
+          </Link>
+          <Link
+            href="/liberaciones"
+            onClick={() => setOpen(false)}
+            className={linkClass(pathname.startsWith("/liberaciones"))}
+          >
+            <ShieldCheck className="h-4 w-4" /> Liberaciones
+          </Link>
+          <Link
+            href="/despachos"
+            onClick={() => setOpen(false)}
+            className={linkClass(pathname.startsWith("/despachos"))}
+          >
+            <Ship className="h-4 w-4" /> Despachos
+          </Link>
+          <Link href="/planta" onClick={() => setOpen(false)} className={linkClass(pathname.startsWith("/planta"))}>
+            <Factory className="h-4 w-4" /> Planta
+          </Link>
+        </>
+      )}
+
+      {(puede("PANEL_AUDITORIA") || verAdmin) && (
+        <p className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Gestión
+        </p>
       )}
       {puede("PANEL_AUDITORIA") && (
         <Link href="/auditoria" onClick={() => setOpen(false)} className={linkClass(pathname.startsWith("/auditoria"))}>
